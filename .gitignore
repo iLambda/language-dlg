@@ -1,0 +1,7 @@
+grammar/_build
+*.old
+bin
+*.cmi
+*.cmx
+*.o
+*.dlg
