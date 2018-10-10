@@ -144,7 +144,7 @@ and incrcount = parse
         incr_amount := amount;
         incrproduce false lexbuf
     }
-    
+
 (* Rule for making INDENT/dedent tokens*)
 and incrproduce iseof = parse
   (* recursively produces indent and outdent tokens. consumes no input *)
@@ -155,9 +155,9 @@ and incrproduce iseof = parse
         | 0 -> if iseof then EOF  (* EOF mode on : after that, we end stream *)
                else token lexbuf  (* EOF mode off : keep parsing tokens because there is more  *)
         (* we need to produce indent tokens *)
-        | n when n > 0 -> incr_amount := ((!incr_amount) - 1); INDENT (*recursive here*)
+        | n when n > 0 -> incr_amount := ((!incr_amount) - 1); INDENT
         (* we need to produce dedent tokens *)
-        | n when n < 0 -> incr_amount := ((!incr_amount) + 1); OUTDENT (*recursive here*)
+        | n when n < 0 -> incr_amount := ((!incr_amount) + 1); OUTDENT
         (* error *)
         | _ -> error lexbuf "error"
     }
