@@ -1,5 +1,6 @@
 {
   open Lexing
+  open Parser
   open Error
   open Position
 
@@ -24,6 +25,13 @@
    *  PARSING FUNCTIONS
    *)
 
+  (*
+   *  HELPERS
+   *)
+   let newline () =
+     last_line_incr := !(cur_line_incr);
+     cur_line_incr := 0
+
 }
 
 (**
@@ -40,7 +48,7 @@ let blank   = space | whitespace
 let comment = ';'
 
 (* Identifiers *)
-let id_dlg_const  = ['a'-'z' 'A'-'Z' '_']['a'-'z' 'A'-'Z' '_' '0'-'9']
+let id_dlg_const  = ['a'-'z' 'A'-'Z' '_']['a'-'z' 'A'-'Z' '_' '0'-'9']+
 
 (* Literals *)
 let lit_integer =   ('-'?['0'-'9']+)
@@ -56,8 +64,8 @@ let lit_float =   '-'?['0'-'9']+'.'['0'-'9']+
 (* Rule for matching a token *)
 rule token = parse
   (* Layout *)
-  | newline         { next_line_and incrcount lexbuf }
-  | comment         { next_line_and incrcount lexbuf; }  (* a comment is like a newline *)
+  | newline         { newline (); next_line_and incrcount lexbuf }
+  | comment         { comments lexbuf }
   | blank+          { token lexbuf }
   | eof
     {
@@ -74,7 +82,8 @@ rule token = parse
   | "ifnset"         { KEYWORD_IFNSET }
   | "global"         { KEYWORD_GLOBAL }
   | "local"          { KEYWORD_LOCAL }
-  | "wait"          { KEYWORD_WAIT }
+  | "wait"           { KEYWORD_WAIT }
+  | "nop"            { KEYWORD_NOP }
 
   (* Literals *)
   | ("true"|"false") as s     { LITERAL_BOOL (bool_of_string s ) }
@@ -99,7 +108,7 @@ rule token = parse
 (* Rules for parsing messages *)
 and message = parse
   (* closing the message *)
-  | '"'             { OPERATOR_MESSAGE } (*TODO CHANGE*)
+  | '"'             { OPERATOR_MESSAGE "" } (*TODO CHANGE*)
   (* an escape character *)
   (* return to default token parsing *)
   | ""              { token lexbuf }
@@ -120,8 +129,6 @@ and incrcount = parse
   | space      { error lexbuf "lonely ident space detected (line does not start with a pairwise number of spaces)"  }
   (* unacceptable whitespace (tabs...) *)
   | whitespace { error lexbuf "only spaces can be used for indentation" }
-  (* if its a comment, drop all we're doing and go to next line *)
-  | comment    { cur_line_incr := 0; next_line_and incrcount lexbuf; }
   (* we're done parsing indentation. consumes no input *)
   | ""
     {
@@ -148,3 +155,9 @@ and incrproduce iseof = parse
         (* error *)
         | _ -> error lexbuf "error"
     }
+
+and comments = parse
+  (* if newline, we continue parsing *)
+  | newline         { newline (); next_line_and incrcount lexbuf }
+  (* ignore all *)
+  | _               { comments lexbuf }
