@@ -20,6 +20,8 @@
   let incr_amount = ref 0
   (* counts the nesting of comments*)
   let comment_ctr = ref 0
+  (* do we have to depile a string ? *)
+  let string_tokens = ref []
 
   (*
    *  PARSING FUNCTIONS
@@ -30,6 +32,24 @@
    *)
    let ignore_line () =
      cur_line_incr := !(last_line_incr)
+
+   let string_append token =
+     (* check token type *)
+     string_tokens := begin match token with
+      (* try to fuse*)
+      | STRING_CONST s2 -> begin match !string_tokens with
+          (* if there is a prior token of type STRING_CONST, then concat*)
+          | (STRING_CONST s1)::t -> (STRING_CONST (s1 ^ s2))::t
+          (* just append *)
+          | _ -> (token::(!string_tokens))
+        end
+      (* just append *)
+      | _ -> (token::(!string_tokens))
+    end
+
+    let string_close closingtok =
+      string_append closingtok;
+      string_tokens := (List.rev !string_tokens)
 
 }
 
@@ -55,6 +75,19 @@ let lit_integer =   ('-'?['0'-'9']+)
               | ("0b"['0'-'1']+)
               | ("0o"['0'-'7']+)
 let lit_float =   '-'?['0'-'9']+'.'['0'-'9']+
+let lit_stringatom    = ['\x20'-'\x7E']#['"'] (*printable*)
+
+let lit_stringescape    = "n" | "b" | "t" | "r" | "\\" | "\""
+let lit_stringescapenum = ("0x"['0'-'9' 'a'-'f' 'A'-'F']['0'-'9' 'a'-'f' 'A'-'F'])
+                          | (['0'-'1']['0'-'9']['0'-'9'] |
+                            "2"['0'-'4']['0'-'9'] |
+                            "25"['0'-'5'])
+
+(* Message specials *)
+let colorhash_digit = ['0'-'9' 'a'-'f' 'A'-'F']
+let colorhash =   ""
+                | colorhash_digit colorhash_digit colorhash_digit
+                | colorhash_digit colorhash_digit colorhash_digit colorhash_digit colorhash_digit colorhash_digit
 
 (*
 * RULES & TOKENS
@@ -64,8 +97,15 @@ let lit_float =   '-'?['0'-'9']+'.'['0'-'9']+
 rule main iseof = parse
   | ""
     {
+      (* we need to empty the string token buffer*)
+      if (!string_tokens) <> [] then
+        (* deconstruct, remove the token, save and return it *)
+        let tok = match (!string_tokens) with
+          | h::t -> string_tokens := t; h
+          | _ -> error lexbuf "Empty list, should not be reached"
+        in tok
       (* we need to produce INDENT/OUTDENT tokens *)
-      if (!incr_amount) <> 0 then (incrproduce false lexbuf)
+      else if (!incr_amount) <> 0 then (incrproduce false lexbuf)
       (* no production needed. parse a regular token  *)
       else (token lexbuf)
     }
@@ -103,7 +143,7 @@ and token = parse
   (* Operators *)
   | '?'             { OPERATOR_CHOICE }
   | '-'             { OPERATOR_CHOICEOPTION }
-  | '"'             { message lexbuf }
+  | '"'             { string_append OPERATOR_MESSAGE; message lexbuf }
 
   (* Punctuation *)
   | '%'             { PUNCTUATION_PERCENT }
@@ -115,12 +155,69 @@ and token = parse
 (* Rules for parsing messages *)
 and message = parse
   (* closing the message *)
-  | '"'             { OPERATOR_MESSAGE "" } (*TODO CHANGE*)
+  | '"'
+    {
+      (* close. *)
+      string_close OPERATOR_MESSAGE;
+      (* we go back to the main rule that'll produce all tokens *)
+      main false lexbuf
+    }
+
+  (* a color tag TODO : won't work because stringatom matches "\c" *)
+  | "\\c{" '#'? (colorhash as s) "}"
+    {
+      (* check value of s *)
+      let () = match s with
+        (* no color specified ; this is a reset color cmd*)
+        | "" -> string_append (STRING_COLOR None)
+        (* a color has been specified ; this is a set color cmd*)
+        | _ -> string_append (STRING_COLOR (Some s))
+      in
+      (* keep parsing *)
+      message lexbuf
+    }
+
+  (* an escape character with a number*)
+  | "\\" (lit_stringescapenum as s)
+    {
+      (* a string constant *)
+      string_append (STRING_CONST (String.make 1 (Char.chr (int_of_string s))));
+      (* keep parsing *)
+      message lexbuf
+    }
   (* an escape character *)
-  (* return to default token parsing *)
-  | ""              { token lexbuf }
+  | "\\" (lit_stringescape as s)
+    {
+      (* compute the escape char*)
+      let escape = match s with
+        | 'n' -> "\n"
+        | 'b' -> "\b"
+        | 't' -> "\t"
+        | 'r' -> "\r"
+        | '\\' -> "\\"
+        | '"' -> "\""
+        | _ -> error lexbuf "invalid escape character"
+      in
+      (* a string constant *)
+      string_append (STRING_CONST escape);
+      (* keep parsing *)
+      message lexbuf
+    }
+  (* any other wrong escape character*)
+  | ("\\" _) as s
+    {
+      error lexbuf (s ^ " : invalid escape character")
+    }
+  (* an atomic string part *)
+  | lit_stringatom as s
+    {
+      (* a string constant *)
+      string_append (STRING_CONST (String.make 1 s));
+      (* keep parsing *)
+      message lexbuf
+    }
   (* a character *)
-  | _               { token lexbuf }
+  | _               { error lexbuf "invalid character in string"}
 
 (* Rule for incrementing INDENT counter *)
 and incrcount = parse

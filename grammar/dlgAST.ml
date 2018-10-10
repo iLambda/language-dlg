@@ -20,13 +20,15 @@ and instruction =
   (** A nop instruction (do nothing) **)
   | INop
   (** A 'print message' instruction **)
-  | IMessage of string
+  | IMessage of fstring located
   (** A choice **)
-  | IChoice of (string located * program located) list
+  | IChoice of (fstring located * program located) list
 
 and expression =
   (** A literal (const value) **)
   | ELiteral of literal located
+  (* A variable identifier*)
+  | EVar of identifier located
 
 and scope =
   | SGlobal
@@ -37,6 +39,13 @@ and literal =
   | LInt    of int32
   | LFloat  of float
   | LBool   of bool
+
+and fstring = fstringtok located list
+
+and fstringtok =
+  | StrConst of string
+  | StrTag (*of expression*)
+  | StrColor of string option
 
 and identifier =
   | Id of string
