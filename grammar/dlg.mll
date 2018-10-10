@@ -60,11 +60,13 @@ let lit_float =   '-'?['0'-'9']+'.'['0'-'9']+
 * RULES & TOKENS
 *)
 
-(* Rule for matching a token *)
+(* Main rule for matching tokens AND indents *)
 rule main iseof = parse
   | ""
     {
+      (* we need to produce INDENT/OUTDENT tokens *)
       if (!incr_amount) <> 0 then (incrproduce false lexbuf)
+      (* no production needed. parse a regular token  *)
       else (token lexbuf)
     }
 and token = parse
@@ -76,7 +78,7 @@ and token = parse
     {
       (* set to produce as much deindent tokens as we are indented rn *)
       incr_amount := -(!cur_line_incr);
-      (* produce them in EOF mode (produces EOF at the end) *)
+      (* produce them in EOF mode (produces an EOF at the end) *)
       incrproduce true lexbuf
     }
 
@@ -120,7 +122,6 @@ and message = parse
   (* a character *)
   | _               { token lexbuf }
 
-
 (* Rule for incrementing INDENT counter *)
 and incrcount = parse
   (* proper indent spaces *)
@@ -128,20 +129,27 @@ and incrcount = parse
     {
       (* increment the current line counter*)
       cur_line_incr := (!cur_line_incr) + 1;
+      (* keep counting spaces *)
       incrcount lexbuf
     }
+  (*  *)
+  | blank* comment         { comments true lexbuf }
   (* lone space, error *)
   | space      { error lexbuf "lonely ident space detected (line does not start with a pairwise number of spaces)"  }
   (* unacceptable whitespace (tabs...) *)
   | whitespace { error lexbuf "only spaces can be used for indentation" }
-  (* we're done parsing indentation. consumes no input *)
+  (* we're done parsing indentation. consume no input *)
   | ""
     {
       (* we're done parsing indentation for this line. compute number tokens produced*)
       let amount = !(cur_line_incr) - !(last_line_incr) in
+        (* iterate indentation for this line *)
         last_line_incr := !(cur_line_incr);
+        (* reset for current line *)
         cur_line_incr := 0;
+        (* set to make (current - amount) tokens *)
         incr_amount := amount;
+        (* go produce them *)
         incrproduce false lexbuf
     }
 
@@ -158,7 +166,7 @@ and incrproduce iseof = parse
         | n when n > 0 -> incr_amount := ((!incr_amount) - 1); INDENT
         (* we need to produce dedent tokens *)
         | n when n < 0 -> incr_amount := ((!incr_amount) + 1); OUTDENT
-        (* error *)
+        (* case unused because of include guards *)
         | _ -> error lexbuf "error"
     }
 
@@ -166,9 +174,10 @@ and comments linefull = parse
   (* if newline, we continue parsing *)
   | newline
     {
-      if linefull then ignore_line ()
-      else ();
+      (* if the comment is a whole line comment, ignore the indent of this line *)
+      if linefull then ignore_line ();
+      (* go to next line *)
       next_line_and incrcount lexbuf
     }
-  (* ignore all *)
+  (* ignore all text in a comment *)
   | _               { comments linefull lexbuf }
