@@ -4,4 +4,4 @@ bin
 *.cmi
 *.cmx
 *.o
-*.dlg
+tests/
