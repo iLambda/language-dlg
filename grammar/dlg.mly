@@ -33,12 +33,14 @@
 %token OPERATOR_MESSAGE
 
 (* Message *)
-%token STRING_TAG
+%token STRING_INLINE
 %token<string> STRING_CONST
 %token<string option> STRING_COLOR
 
 (* Punctuation *)
 %token PUNCTUATION_PERCENT
+%token PUNCTUATION_LPAREN
+%token PUNCTUATION_RPAREN
 
 %start<DlgAST.t> program
 
@@ -124,9 +126,13 @@ stringcontents:
   | sub = located(substring)
     { [sub] }
 
+stringinline:
+  | STRING_INLINE e=located(expr) STRING_INLINE
+    { e }
+
 substring:
   | c = STRING_CONST { StrConst c }
-  | STRING_TAG { StrTag }
+  | e = stringinline { StrInline e }
   | col = STRING_COLOR { StrColor col }
 
 (* Inline functions & macros *)

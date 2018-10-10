@@ -9,12 +9,13 @@ let print_tok = function
   | INDENT -> "INDENT"
   | OUTDENT -> "OUTDENT"
   | OPERATOR_MESSAGE -> "\""
+  | LITERAL_INT i -> Int32.to_string i
   | STRING_CONST s -> "STRING_CONST(" ^ s ^ ")"
   | STRING_COLOR c -> begin match c with
     | None -> "STRING_COLOR(None)"
     | Some hash -> "STRING_COLOR(" ^ hash ^ ")"
     end
-  | STRING_TAG -> "STRING_TAG"
+  | STRING_INLINE -> "STRING_TAG"
   | _ -> "THING"
 
 let main () =

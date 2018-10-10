@@ -144,6 +144,8 @@ and token = parse
   | '?'             { OPERATOR_CHOICE }
   | '-'             { OPERATOR_CHOICEOPTION }
   | '"'             { string_append OPERATOR_MESSAGE; message lexbuf }
+  | "("             { PUNCTUATION_LPAREN }
+  | ")"             { PUNCTUATION_RPAREN }
 
   (* Punctuation *)
   | '%'             { PUNCTUATION_PERCENT }
@@ -161,6 +163,22 @@ and message = parse
       string_close OPERATOR_MESSAGE;
       (* we go back to the main rule that'll produce all tokens *)
       main false lexbuf
+    }
+  (* entering an inline expression *)
+  | "$("
+    {
+      (* append an entering string tag*)
+      string_append STRING_INLINE;
+      (* declare a token holder *)
+      let tok = ref PUNCTUATION_LPAREN in
+      (* while we don't encounter a RPAREN ')' while parsing with 'token' rule*)
+      while tok := (token lexbuf); !tok <> PUNCTUATION_RPAREN
+      (* append the token to the string constant*)
+      do string_append (!tok); done;
+      (* append a closing string tag*)
+      string_append STRING_INLINE;
+      (* keep parsing string *)
+      message lexbuf
     }
 
   (* a color tag TODO : won't work because stringatom matches "\c" *)

@@ -44,7 +44,7 @@ and fstring = fstringtok located list
 
 and fstringtok =
   | StrConst of string
-  | StrTag (*of expression*)
+  | StrInline of expression located
   | StrColor of string option
 
 and identifier =
