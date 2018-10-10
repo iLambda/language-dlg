@@ -15,7 +15,7 @@ let main () =
   let c = open_in Sys.argv.(1) in
   let lb = from_channel c in
   let rec tokenize () =
-    let tok = Lexer.token lb in
+    let tok = Lexer.main false lb in
     print_string (print_tok tok); print_string "\n";
     if tok <> EOF then tokenize () else ()
   in tokenize ();

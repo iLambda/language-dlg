@@ -28,9 +28,8 @@
   (*
    *  HELPERS
    *)
-   let newline () =
-     last_line_incr := !(cur_line_incr);
-     cur_line_incr := 0
+   let ignore_line () =
+     cur_line_incr := !(last_line_incr)
 
 }
 
@@ -62,10 +61,16 @@ let lit_float =   '-'?['0'-'9']+'.'['0'-'9']+
 *)
 
 (* Rule for matching a token *)
-rule token = parse
+rule main iseof = parse
+  | ""
+    {
+      if (!incr_amount) <> 0 then (incrproduce false lexbuf)
+      else (token lexbuf)
+    }
+and token = parse
   (* Layout *)
-  | newline         { newline (); next_line_and incrcount lexbuf }
-  | comment         { comments lexbuf }
+  | newline         { next_line_and incrcount lexbuf }
+  | comment         { comments false lexbuf }
   | blank+          { token lexbuf }
   | eof
     {
@@ -139,6 +144,7 @@ and incrcount = parse
         incr_amount := amount;
         incrproduce false lexbuf
     }
+    
 (* Rule for making INDENT/dedent tokens*)
 and incrproduce iseof = parse
   (* recursively produces indent and outdent tokens. consumes no input *)
@@ -149,15 +155,20 @@ and incrproduce iseof = parse
         | 0 -> if iseof then EOF  (* EOF mode on : after that, we end stream *)
                else token lexbuf  (* EOF mode off : keep parsing tokens because there is more  *)
         (* we need to produce indent tokens *)
-        | n when n > 0 -> incr_amount := ((!incr_amount) - 1); INDENT
+        | n when n > 0 -> incr_amount := ((!incr_amount) - 1); INDENT (*recursive here*)
         (* we need to produce dedent tokens *)
-        | n when n < 0 -> incr_amount := ((!incr_amount) + 1); OUTDENT
+        | n when n < 0 -> incr_amount := ((!incr_amount) + 1); OUTDENT (*recursive here*)
         (* error *)
         | _ -> error lexbuf "error"
     }
 
-and comments = parse
+and comments linefull = parse
   (* if newline, we continue parsing *)
-  | newline         { newline (); next_line_and incrcount lexbuf }
+  | newline
+    {
+      if linefull then ignore_line ()
+      else ();
+      next_line_and incrcount lexbuf
+    }
   (* ignore all *)
-  | _               { comments lexbuf }
+  | _               { comments linefull lexbuf }
