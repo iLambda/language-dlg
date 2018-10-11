@@ -1,8 +1,9 @@
 grammar/_build
 *.old
+build
 bin
 *.cmi
 *.cmx
 *.o
 *.cmt
-tests/
+*.dlg

@@ -5,31 +5,33 @@ CCFLAGS = -linkpkg -package sexplib,ppx_sexp_conv
 
 all: clean edit
 
-edit:	bin/dlgAST.cmx bin/position.cmx bin/error.cmx bin/lexer.cmx bin/parser.cmx
-				$(CC) -o bin/dlg.native -linkpkg -package sexplib,ppx_sexp_conv -I bin/ bin/position.cmx bin/error.cmx bin/lexer.cmx libs/main.ml
-				mv libs/*.cmi libs/*.cmt libs/*.cmx libs/*.o bin/
+edit:	build/dlgAST.cmx build/position.cmx build/error.cmx build/lexer.cmx build/parser.cmx
+				$(CC) -o build/dlglex.native -linkpkg -package sexplib,ppx_sexp_conv -I build/ build/position.cmx build/error.cmx build/lexer.cmx tests/lextest.ml
+				mv tests/*.cmi tests/*.cmt tests/*.cmx tests/*.o build/
+				mv build/dlglex.native bin/dlglex
 
-bin/position.cmx:
-				$(CC) -c $(CCFLAGS) libs/position.ml -o bin/position.cmx
-bin/error.cmx: bin/position.cmx
-				$(CC) -c $(CCFLAGS) -I bin/ libs/error.ml -o bin/error.cmx
-bin/dlgAST.cmx: bin/position.cmx
-				$(CC) -c $(CCFLAGS) -I bin/ grammar/dlgAST.ml -o bin/dlgAST.cmx
-bin/lexer.cmx: bin/lexer.ml bin/parser.cmx
-				$(CC) -c $(CCFLAGS) bin/lexer.ml -I bin/ -o bin/lexer.cmx
+build/position.cmx:
+				$(CC) -c $(CCFLAGS) libs/position.ml -o build/position.cmx
+build/error.cmx: build/position.cmx
+				$(CC) -c $(CCFLAGS) -I build/ libs/error.ml -o build/error.cmx
+build/dlgAST.cmx: build/position.cmx
+				$(CC) -c $(CCFLAGS) -I build/ grammar/dlgAST.ml -o build/dlgAST.cmx
+build/lexer.cmx: build/lexer.ml build/parser.cmx
+				$(CC) -c $(CCFLAGS) build/lexer.ml -I build/ -o build/lexer.cmx
 
-bin/parser.cmx: bin/parser.ml
-				$(CC) -c $(CCFLAGS) bin/parser.mli -I bin/ -o bin/parser.cmi
-				$(CC) -c $(CCFLAGS) bin/parser.ml -I bin/ -o bin/parser.cmx
+build/parser.cmx: build/parser.ml
+				$(CC) -c $(CCFLAGS) build/parser.mli -I build/ -o build/parser.cmi
+				$(CC) -c $(CCFLAGS) build/parser.ml -I build/ -o build/parser.cmx
 
 
-bin/lexer.ml:
-				$(LEX) grammar/dlg.mll -o bin/lexer.ml
-bin/parser.ml:
-				$(YACC) grammar/dlg.mly --explain --base bin/parser
+build/lexer.ml:
+				$(LEX) grammar/dlg.mll -o build/lexer.ml
+build/parser.ml:
+				$(YACC) grammar/dlg.mly --explain --base build/parser
 
 clean:
+	    rm -rf tests/*.cmi tests/*.cmx tests/*.o tests/*.cmt
 	    rm -rf libs/*.cmi libs/*.cmx libs/*.o libs/*.cmt
 	    rm -rf grammar/*.cmi grammar/*.cmx grammar/*.o grammar/*.cmt
-			rm -rf bin/*.native bin/*.ml bin/*.mli bin/*.cmi bin/*.cmx bin/*.o bin/*.cmt
+			rm -rf build/*.native build/*.ml build/*.mli build/*.cmi build/*.cmx build/*.o build/*.cmt
 	    echo Successfully cleaned project

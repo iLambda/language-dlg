@@ -1,4 +1,4 @@
-PKG parser
+PKG ./**
 
 S ./**
 B ./**
