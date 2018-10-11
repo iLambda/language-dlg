@@ -4,4 +4,5 @@ bin
 *.cmi
 *.cmx
 *.o
+*.cmt
 tests/

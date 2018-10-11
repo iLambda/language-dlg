@@ -7,6 +7,7 @@ all: clean edit
 
 edit:	bin/dlgAST.cmx bin/position.cmx bin/error.cmx bin/lexer.cmx bin/parser.cmx
 				$(CC) -o bin/dlg.native -linkpkg -package sexplib,ppx_sexp_conv -I bin/ bin/position.cmx bin/error.cmx bin/lexer.cmx libs/main.ml
+				mv libs/*.cmi libs/*.cmt libs/*.cmx libs/*.o bin/
 
 bin/position.cmx:
 				$(CC) -c $(CCFLAGS) libs/position.ml -o bin/position.cmx
@@ -28,7 +29,7 @@ bin/parser.ml:
 				$(YACC) grammar/dlg.mly --explain --base bin/parser
 
 clean:
-	    rm -rf libs/*.cmi libs/*.cmx libs/*.o
-	    rm -rf grammar/*.cmi grammar/*.cmx grammar/*.o
-			rm -rf bin/*.native bin/*.ml bin/*.mli bin/*.cmi bin/*.cmx bin/*.o
+	    rm -rf libs/*.cmi libs/*.cmx libs/*.o libs/*.cmt
+	    rm -rf grammar/*.cmi grammar/*.cmx grammar/*.o grammar/*.cmt
+			rm -rf bin/*.native bin/*.ml bin/*.mli bin/*.cmi bin/*.cmx bin/*.o bin/*.cmt
 	    echo Successfully cleaned project
