@@ -30,6 +30,8 @@
   (*
    *  HELPERS
    *)
+   type strparsemode = ModeMessage | ModeLiteral
+
    let ignore_line () =
      cur_line_incr := !(last_line_incr)
 
@@ -67,7 +69,7 @@ let blank   = space | whitespace
 let comment = ';'
 
 (* Identifiers *)
-let id_dlg_const  = ['a'-'z' 'A'-'Z' '_']['a'-'z' 'A'-'Z' '_' '0'-'9']+
+let id_dlg_const  = ['a'-'z' 'A'-'Z' '_']['a'-'z' 'A'-'Z' '_' '0'-'9']*
 
 (* Literals *)
 let lit_integer =   ('-'?['0'-'9']+)
@@ -107,13 +109,13 @@ rule main iseof = parse
       (* we need to produce INDENT/OUTDENT tokens *)
       else if (!incr_amount) <> 0 then (incrproduce false lexbuf)
       (* no production needed. parse a regular token  *)
-      else (token lexbuf)
+      else (token false lexbuf)
     }
-and token = parse
+and token isinline = parse
   (* Layout *)
   | newline         { next_line_and incrcount lexbuf }
   | comment         { comments false lexbuf }
-  | blank+          { token lexbuf }
+  | blank+          { token isinline lexbuf }
   | eof
     {
       (* set to produce as much deindent tokens as we are indented rn *)
@@ -131,6 +133,8 @@ and token = parse
   | "local"          { KEYWORD_LOCAL }
   | "wait"           { KEYWORD_WAIT }
   | "nop"            { KEYWORD_NOP }
+  | "when"           { KEYWORD_WHEN }
+  | "norush"         { KEYWORD_NORUSH }
 
   (* Literals *)
   | ("true"|"false") as s     { LITERAL_BOOL (bool_of_string s ) }
@@ -143,26 +147,77 @@ and token = parse
   (* Operators *)
   | '?'             { OPERATOR_CHOICE }
   | '-'             { OPERATOR_CHOICEOPTION }
-  | '"'             { string_append OPERATOR_MESSAGE; message lexbuf }
-  | "("             { PUNCTUATION_LPAREN }
-  | ")"             { PUNCTUATION_RPAREN }
+  | '"'
+    {
+      (* if we are inline, just send symbol*)
+      if isinline then OPERATOR_MESSAGE
+      (* if we are not inline, open string parser in msg mode*)
+      else begin
+          string_append OPERATOR_MESSAGE;
+          message ModeMessage lexbuf
+        end
+    }
+  | '\''
+    {
+      (* if we are inline, just send symbol*)
+      if isinline then OPERATOR_STRING
+      (* if we are not inline, open string parser in literal mode*)
+      else begin
+          string_append OPERATOR_STRING;
+          message ModeLiteral lexbuf
+        end
+    }
+  | '_'             { OPERATOR_WILDCARD }
 
   (* Punctuation *)
   | '%'             { PUNCTUATION_PERCENT }
+  | '('             { PUNCTUATION_LPAREN }
+  | ')'             { PUNCTUATION_RPAREN }
 
   (* Lexing error. *)
   | _               { error lexbuf "unexpected character." }
 
 
-(* Rules for parsing messages *)
-and message = parse
+(* Rules for parsing strings *)
+and message mode = parse
   (* closing the message *)
   | '"'
     {
-      (* close. *)
-      string_close OPERATOR_MESSAGE;
-      (* we go back to the main rule that'll produce all tokens *)
-      main false lexbuf
+      (* check mode *)
+      match mode with
+        (* we are parsing a message. this is close*)
+        | ModeMessage -> begin
+          (* close. *)
+          string_close OPERATOR_MESSAGE;
+          (* we go back to the main rule that'll produce all tokens *)
+          main false lexbuf
+          end
+        (* we are parsing a literal. this is just a char*)
+        | ModeLiteral -> begin
+          (* a string constant *)
+          string_append (STRING_CONST (Lexing.lexeme lexbuf));
+          (* keep parsing *)
+          message mode lexbuf
+          end
+    }
+  | '\''
+    {
+      (* check mode *)
+      match mode with
+        (* we are parsing a message. this is close*)
+        | ModeLiteral -> begin
+          (* close. *)
+          string_close OPERATOR_STRING;
+          (* we go back to the main rule that'll produce all tokens *)
+          main false lexbuf
+          end
+        (* we are parsing a message. this is just a char*)
+        | ModeMessage -> begin
+          (* a string constant *)
+          string_append (STRING_CONST (Lexing.lexeme lexbuf));
+          (* keep parsing *)
+          message mode lexbuf
+          end
     }
   (* entering an inline expression *)
   | "$("
@@ -172,13 +227,13 @@ and message = parse
       (* declare a token holder *)
       let tok = ref PUNCTUATION_LPAREN in
       (* while we don't encounter a RPAREN ')' while parsing with 'token' rule*)
-      while tok := (token lexbuf); !tok <> PUNCTUATION_RPAREN
+      while tok := (token true lexbuf); !tok <> PUNCTUATION_RPAREN
       (* append the token to the string constant*)
       do string_append (!tok); done;
       (* append a closing string tag*)
       string_append STRING_INLINE;
       (* keep parsing string *)
-      message lexbuf
+      message mode lexbuf
     }
 
   (* a color tag TODO : won't work because stringatom matches "\c" *)
@@ -192,7 +247,7 @@ and message = parse
         | _ -> string_append (STRING_COLOR (Some s))
       in
       (* keep parsing *)
-      message lexbuf
+      message mode lexbuf
     }
 
   (* an escape character with a number*)
@@ -201,7 +256,7 @@ and message = parse
       (* a string constant *)
       string_append (STRING_CONST (String.make 1 (Char.chr (int_of_string s))));
       (* keep parsing *)
-      message lexbuf
+      message mode lexbuf
     }
   (* an escape character *)
   | "\\" (lit_stringescape as s)
@@ -219,7 +274,7 @@ and message = parse
       (* a string constant *)
       string_append (STRING_CONST escape);
       (* keep parsing *)
-      message lexbuf
+      message mode lexbuf
     }
   (* any other wrong escape character*)
   | ("\\" _) as s
@@ -232,7 +287,7 @@ and message = parse
       (* a string constant *)
       string_append (STRING_CONST (String.make 1 s));
       (* keep parsing *)
-      message lexbuf
+      message mode lexbuf
     }
   (* a character *)
   | _               { error lexbuf "invalid character in string"}
@@ -276,7 +331,7 @@ and incrproduce iseof = parse
       match (!incr_amount) with
         (* no more tokens to produce, go back to parsing*)
         | 0 -> if iseof then EOF  (* EOF mode on : after that, we end stream *)
-               else token lexbuf  (* EOF mode off : keep parsing tokens because there is more  *)
+               else token false lexbuf  (* EOF mode off : keep parsing tokens because there is more  *)
         (* we need to produce indent tokens *)
         | n when n > 0 -> incr_amount := ((!incr_amount) - 1); INDENT
         (* we need to produce dedent tokens *)

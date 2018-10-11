@@ -20,15 +20,25 @@ and instruction =
   (** A nop instruction (do nothing) **)
   | INop
   (** A 'print message' instruction **)
-  | IMessage of fstring located
+  | IMessage of message located
   (** A choice **)
-  | IChoice of (fstring located * program located) list
+  | IChoice of (message located * program located) list
+  (** A condition **)
+  | ICondition of expression located * ((pattern located * program located) list)
 
 and expression =
   (** A literal (const value) **)
   | ELiteral of literal located
-  (* A variable identifier*)
+  (* A variable **)
   | EVar of identifier located
+
+and pattern =
+  (** A wildcard **)
+  | PWildcard
+  (** A simple value **)
+  | PValue of expression located
+  (** A capturing value**)
+  | PBinding of identifier located * expression located
 
 and scope =
   | SGlobal
@@ -39,6 +49,12 @@ and literal =
   | LInt    of int32
   | LFloat  of float
   | LBool   of bool
+  | LString of fstring
+
+and message = fstring located * messageopt located list
+and messageopt =
+  | MsgNoRush
+  | MsgNoAcknowledge
 
 and fstring = fstringtok located list
 
