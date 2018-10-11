@@ -38,6 +38,19 @@
 %token OPERATOR_WILDCARD
 %token OPERATOR_STRING
 
+(* operation *)
+%token <string> OPERATION_PLUS
+%token <string> OPERATION_MINUS
+%token <string> OPERATION_STAR
+%token <string> OPERATION_DIVIDE
+%token <string> OPERATION_AND
+%token <string> OPERATION_OR
+%token <string> OPERATION_ISEQ
+%token <string> OPERATION_LEQ
+%token <string> OPERATION_GEQ
+%token <string> OPERATION_LESS
+%token <string> OPERATION_MORE
+
 (* Message *)
 %token STRING_INLINE
 %token<string> STRING_CONST
@@ -54,6 +67,12 @@
 (*
  * PRIORITY RULES
  *)
+
+(* the infix operators*)
+%left OPERATION_AND OPERATION_OR
+%nonassoc OPERATION_ISEQ, OPERATION_LEQ, OPERATION_GEQ, OPERATION_LESS, OPERATION_MORE
+%left OPERATION_PLUS, OPERATION_MINUS
+%left OPERATION_DIVIDE OPERATION_STAR
 
 %%
 
@@ -120,12 +139,35 @@ pattern:
 
 (* Expressions *)
 expr:
+  (* a literal *)
   | lit = located(literal)
     { ELiteral(lit) }
+  (* a variable identifier *)
   | var=located(identifier_var)
     { EVar(var) }
+  (* bracketing expression *)
   | PUNCTUATION_LPAREN e=expr PUNCTUATION_RPAREN
     { e }
+  (* infix operators *)
+  | lhs = located(expr) operator = located(OPERATION_PLUS) rhs = located(expr)
+  | lhs = located(expr) operator = located(OPERATION_MINUS) rhs = located(expr)
+  | lhs = located(expr) operator = located(OPERATION_STAR) rhs = located(expr)
+  | lhs = located(expr) operator = located(OPERATION_DIVIDE) rhs = located(expr)
+  | lhs = located(expr) operator = located(OPERATION_AND) rhs = located(expr)
+  | lhs = located(expr) operator = located(OPERATION_OR) rhs = located(expr)
+  | lhs = located(expr) operator = located(OPERATION_ISEQ) rhs = located(expr)
+  | lhs = located(expr) operator = located(OPERATION_LEQ) rhs = located(expr)
+  | lhs = located(expr) operator = located(OPERATION_GEQ) rhs = located(expr)
+  | lhs = located(expr) operator = located(OPERATION_LESS) rhs = located(expr)
+  | lhs = located(expr) operator = located(OPERATION_MORE) rhs = located(expr)
+    {
+      (* check if expression is already an operation *)
+      match Position.value rhs with
+        (* recompose arguments *)
+        | EOperation (o, args) when (Position.value o) = (Position.value operator) -> EOperation (operator, lhs::args)
+        (* create a new operation *)
+        | _                                                                        -> EOperation (operator, [lhs; rhs])
+    }
 
 (* Keywords *)
 scope:

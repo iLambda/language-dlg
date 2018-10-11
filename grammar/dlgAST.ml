@@ -29,8 +29,10 @@ and instruction =
 and expression =
   (** A literal (const value) **)
   | ELiteral of literal located
-  (* A variable **)
+  (** A variable **)
   | EVar of identifier located
+  (** An operation **)
+  | EOperation of string located * expression located list
 
 and pattern =
   (** A wildcard **)
