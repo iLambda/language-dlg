@@ -5,10 +5,12 @@ CCFLAGS = -linkpkg -package sexplib,ppx_sexp_conv
 
 all: clean edit
 
-edit:	build/dlgAST.cmx build/position.cmx build/error.cmx build/lexer.cmx build/parser.cmx
-				$(CC) -o build/dlglex.native -linkpkg -package sexplib,ppx_sexp_conv -I build/ build/position.cmx build/error.cmx build/lexer.cmx tests/lextest.ml
+edit:	build/dlgAST.cmx build/position.cmx build/error.cmx build/dlgLexer.cmx build/dlgParser.cmx
+				$(CC) -o build/dlglex.native -linkpkg -package sexplib,ppx_sexp_conv -I build/ build/position.cmx build/error.cmx build/dlgLexer.cmx tests/lextest.ml
+				$(CC) -o build/dlgast.native -linkpkg -package sexplib,ppx_sexp_conv -I build/ build/position.cmx build/error.cmx build/dlgAST.cmx build/dlgParser.cmx build/dlgLexer.cmx tests/asttest.ml
 				mv tests/*.cmi tests/*.cmt tests/*.cmx tests/*.o build/
 				mv build/dlglex.native bin/dlglex
+				mv build/dlgast.native bin/dlgast
 
 build/position.cmx:
 				$(CC) -c $(CCFLAGS) libs/position.ml -o build/position.cmx
@@ -16,18 +18,17 @@ build/error.cmx: build/position.cmx
 				$(CC) -c $(CCFLAGS) -I build/ libs/error.ml -o build/error.cmx
 build/dlgAST.cmx: build/position.cmx
 				$(CC) -c $(CCFLAGS) -I build/ grammar/dlgAST.ml -o build/dlgAST.cmx
-build/lexer.cmx: build/lexer.ml build/parser.cmx
-				$(CC) -c $(CCFLAGS) build/lexer.ml -I build/ -o build/lexer.cmx
+build/dlgLexer.cmx: build/dlgLexer.ml build/dlgParser.cmx
+				$(CC) -c $(CCFLAGS) build/dlgLexer.ml -I build/ -o build/dlgLexer.cmx
 
-build/parser.cmx: build/parser.ml
-				$(CC) -c $(CCFLAGS) build/parser.mli -I build/ -o build/parser.cmi
-				$(CC) -c $(CCFLAGS) build/parser.ml -I build/ -o build/parser.cmx
+build/dlgParser.cmx: build/dlgParser.ml
+				$(CC) -c $(CCFLAGS) build/dlgParser.mli -I build/ -o build/dlgParser.cmi
+				$(CC) -c $(CCFLAGS) build/dlgParser.ml -I build/ -o build/dlgParser.cmx
 
-
-build/lexer.ml:
-				$(LEX) grammar/dlg.mll -o build/lexer.ml
-build/parser.ml:
-				$(YACC) grammar/dlg.mly --explain --base build/parser
+build/dlgLexer.ml:
+				$(LEX) grammar/dlg.mll -o build/dlgLexer.ml
+build/dlgParser.ml:
+				$(YACC) grammar/dlg.mly --explain --base build/dlgParser
 
 clean:
 	    rm -rf tests/*.cmi tests/*.cmx tests/*.o tests/*.cmt

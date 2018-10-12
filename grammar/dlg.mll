@@ -1,6 +1,6 @@
 {
   open Lexing
-  open Parser
+  open DlgParser
   open Error
   open Position
 

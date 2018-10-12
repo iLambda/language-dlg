@@ -5,6 +5,7 @@ open Position
 
 (** A program is a list of definitions. *)
 type program = instruction located list
+(* [@@deriving sexp] *)
 
 and instruction =
   (** A label **)
@@ -69,5 +70,4 @@ and identifier =
   | Id of string
 
 and t = program
-
 [@@deriving sexp]

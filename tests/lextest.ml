@@ -1,5 +1,5 @@
 open Lexing
-open Parser
+open DlgParser
 open Printf
 
 let usage () = eprintf "usage: dlg file\n"; exit 1
@@ -48,7 +48,6 @@ let print_tok = function
   | KEYWORD_GLOBAL -> "global"
   | INDENT -> "INDENT"
   | ID_VAR s -> "VAR(" ^ s ^ ")"
-  | _ -> failwith "Token not implemented"
 
 
 let main () =
@@ -57,7 +56,7 @@ let main () =
   let lb = from_channel c in
   (* let p = Parser.program Lexer.main lb in *)
   let rec tokenize () =
-    let tok = Lexer.main false lb in
+    let tok = DlgLexer.main false lb in
     print_string (print_tok tok); print_string "\n";
     if tok <> EOF then tokenize () else ()
   in tokenize ();
