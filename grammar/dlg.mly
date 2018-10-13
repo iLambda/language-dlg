@@ -131,8 +131,8 @@ instruction:
     }
 
   (** a wait instruction **)
-  | KEYWORD_WAIT n=located(expr)
-    { IWait n }
+  | KEYWORD_WAIT event=option(located(identifier_var)) n=located(expr)
+    { IWait (event, n) }
   (** a nop (do nothing) **)
   | KEYWORD_NOP
     { INop }
