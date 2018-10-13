@@ -188,6 +188,13 @@ and token isinline = parse
   | '('             { PUNCTUATION_LPAREN }
   | ')'             { PUNCTUATION_RPAREN }
 
+  (* Closing a string inline *)
+  | '$'
+    {
+      if isinline then STRING_INLINE
+      else error lexbuf "inline character detected while not in a string"
+    }
+
   (* Lexing error. *)
   | _               { error lexbuf "unexpected character." }
 
@@ -234,14 +241,14 @@ and message mode = parse
           end
     }
   (* entering an inline expression *)
-  | "$("
+  | "$"
     {
       (* append an entering string tag*)
       string_append STRING_INLINE;
       (* declare a token holder *)
-      let tok = ref PUNCTUATION_LPAREN in
-      (* while we don't encounter a RPAREN ')' while parsing with 'token' rule*)
-      while tok := (token true lexbuf); !tok <> PUNCTUATION_RPAREN
+      let tok = ref EOF in
+      (* while we don't encounter a closing inline token '$' while parsing with 'token' rule*)
+      while tok := (token true lexbuf); !tok <> STRING_INLINE
       (* append the token to the string constant*)
       do string_append (!tok); done;
       (* append a closing string tag*)
