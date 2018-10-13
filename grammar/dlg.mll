@@ -138,6 +138,7 @@ and token isinline = parse
   | "when"           { KEYWORD_WHEN }
   | "norush"         { KEYWORD_NORUSH }
   | "noack"         { KEYWORD_NOACK }
+  | "invoke"         { KEYWORD_INVOKE }
   | "send"         { KEYWORD_SEND }
   | "speed"         { KEYWORD_SPEED }
 
@@ -196,6 +197,7 @@ and token isinline = parse
   | '%'             { PUNCTUATION_PERCENT }
   | '('             { PUNCTUATION_LPAREN }
   | ')'             { PUNCTUATION_RPAREN }
+  | ','             { PUNCTUATION_COMMA }
 
   (* Closing a string inline *)
   | '$'

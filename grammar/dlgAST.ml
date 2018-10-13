@@ -26,6 +26,8 @@ and instruction =
   | IChoice of (message located * program located) list
   (** A condition **)
   | ICondition of expression located * ((pattern located * program located) list)
+  (** A function invoke **)
+  | IInvoke of identifier located * arglist located
   (** A speed command **)
   | ISpeed of expression located
   (** A send command **)
@@ -62,6 +64,8 @@ and literal =
   | LEnum of (identifier located) * (identifier located)
   | LVec2 of (expression located) * (expression located)
   | LVec3 of (expression located) * (expression located) * (expression located)
+
+and arglist = expression located list
 
 and message = fstring located * messageopt located list
 and messageopt =

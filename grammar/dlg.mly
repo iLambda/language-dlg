@@ -25,6 +25,7 @@
 %token KEYWORD_NOACK
 %token KEYWORD_SEND
 %token KEYWORD_OBJECT
+%token KEYWORD_INVOKE
 %token KEYWORD_SPEED
 
 (* Literals *)
@@ -68,6 +69,7 @@
 %token PUNCTUATION_PERCENT
 %token PUNCTUATION_LPAREN
 %token PUNCTUATION_RPAREN
+%token PUNCTUATION_COMMA
 
 %start<DlgAST.t> program
 
@@ -144,6 +146,9 @@ instruction:
   (** a condition **)
   | OPERATOR_CHOICE condition=located(expr) INDENT branches=list(branch) OUTDENT
     { ICondition(condition, branches) }
+  (** a function invoke **)
+  | KEYWORD_INVOKE func=located(identifier_obj) args=located(arg_list)
+    { IInvoke (func, args) }
   (** a speed **)
   | KEYWORD_SPEED n=located(expr)
     { ISpeed n }
@@ -208,6 +213,11 @@ expr:
         (* create a new operation *)
         | _                                                                        -> EOperation (operator, [lhs; rhs])
     }
+
+(* Argument list *)
+arg_list:
+  | tuple=delimited(PUNCTUATION_LPAREN, separated_list(PUNCTUATION_COMMA, located(expr)), PUNCTUATION_RPAREN)
+    { tuple }
 
 (* Keywords *)
 /* scope:
