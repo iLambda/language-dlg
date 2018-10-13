@@ -37,7 +37,7 @@ instruction ::=
               ; game program interactivity
                 | invoke extern_id ([expr{, expr}])
                 | send extern_id [expr]
-                | wait const_id expr
+                | wait const_id then expr
 
 ; an expression
 expr ::=
