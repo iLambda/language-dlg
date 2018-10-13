@@ -114,7 +114,7 @@ rule main iseof = parse
 and token isinline = parse
   (* Layout *)
   | newline         { next_line_and incrcount lexbuf }
-  | comment         { comments false lexbuf }
+  | comment         { comments lexbuf }
   | blank+          { token isinline lexbuf }
   | eof
     {
@@ -315,6 +315,12 @@ and message mode = parse
 
 (* Rule for incrementing INDENT counter *)
 and incrcount = parse
+
+  (* if comment, ignore whole comment and continue*)
+  | blank* comment { comments lexbuf }
+  (* if newline, we ignore the whole line*)
+  | blank* newline { next_line_and incrcount lexbuf }
+
   (* proper indent spaces *)
   | space space
     {
@@ -323,8 +329,6 @@ and incrcount = parse
       (* keep counting spaces *)
       incrcount lexbuf
     }
-  (*  *)
-  | blank* comment         { comments true lexbuf }
   (* lone space, error *)
   | space      { error lexbuf "lonely ident space detected (line does not start with a pairwise number of spaces)"  }
   (* unacceptable whitespace (tabs...) *)
@@ -361,14 +365,12 @@ and incrproduce iseof = parse
         | _ -> error lexbuf "error"
     }
 
-and comments linefull = parse
+and comments = parse
   (* if newline, we continue parsing *)
   | newline
     {
-      (* if the comment is a whole line comment, ignore the indent of this line *)
-      if linefull then ignore_line ();
       (* go to next line *)
       next_line_and incrcount lexbuf
     }
   (* ignore all text in a comment *)
-  | _               { comments linefull lexbuf }
+  | _               { comments lexbuf }
