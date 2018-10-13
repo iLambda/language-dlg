@@ -113,7 +113,9 @@ and string_of_literal = function
   | LFloat f -> string_of_float f
   | LBool b -> string_of_bool b
   | LString fs -> "'" ^ (string_of_fstring fs) ^ "'"
-  | _ -> "[UNIMPEMENTED]"
+  | LEnum (t, v) -> "enum[" ^ (string_of_id (unlocate t)) ^ "." ^ (string_of_id (unlocate v)) ^ "]"
+  | LVec2 (x, y) -> "vec2[" ^ (string_of_expr (unlocate x)) ^  " ; " ^ (string_of_expr (unlocate y)) ^ "]"
+  | LVec3 (x, y, z) -> "vec3[" ^ (string_of_expr (unlocate x)) ^  " ; " ^ (string_of_expr (unlocate y)) ^ " ; " ^ (string_of_expr (unlocate z)) ^ "]"
 
 and string_of_fstring = function
   | [] -> ""
