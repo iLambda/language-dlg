@@ -42,15 +42,15 @@ instruction ::=
 ; an expression
 expr ::=
        ; a literal
-       | literal
+         | literal
        ; a variable identifier
-       | const_id
+         | const_id
        ; bracketing
-       | (expr)
+         | (expr)
        ; a function call
-       | const_id([expr{, expr}])
+         | const_id([expr{, expr}])
        ; an operator call
-       | expr infixop expr
+         | expr infixop expr
 
 ; an infix operator
 infixop ::= + | - | * | / | && | || | = | != | <= | >= | < | >
@@ -63,11 +63,11 @@ branch ::= -pattern INDENT program OUTDENT
 ; a pattern
 pattern ::=
           ; a wildcard token
-          _
+            | _
           ; a simple value
-          expression
+            | expression
           ; a binding pattern with a condition
-          identifier_var when expr
+          |  identifier_var when expr
 
 ; a literal
 literal ::=
@@ -78,6 +78,7 @@ literal ::=
           | vec2(expr, expr)
           | vec3(expr, expr, expr)
           | enum(const_id, const_id)
+          
 ; a message and the options
 message ::= "string" [{message_opt }]
 message_opt ::= norush | noack
