@@ -46,6 +46,7 @@
 %token <string> OPERATION_AND
 %token <string> OPERATION_OR
 %token <string> OPERATION_ISEQ
+%token <string> OPERATION_ISNEQ
 %token <string> OPERATION_LEQ
 %token <string> OPERATION_GEQ
 %token <string> OPERATION_LESS
@@ -70,7 +71,7 @@
 
 (* the infix operators*)
 %left OPERATION_AND OPERATION_OR
-%nonassoc OPERATION_ISEQ, OPERATION_LEQ, OPERATION_GEQ, OPERATION_LESS, OPERATION_MORE
+%nonassoc OPERATION_ISEQ, OPERATION_ISNEQ, OPERATION_LEQ, OPERATION_GEQ, OPERATION_LESS, OPERATION_MORE
 %left OPERATION_PLUS, OPERATION_MINUS
 %left OPERATION_DIVIDE OPERATION_STAR
 
@@ -156,6 +157,7 @@ expr:
   | lhs = located(expr) operator = located(OPERATION_AND) rhs = located(expr)
   | lhs = located(expr) operator = located(OPERATION_OR) rhs = located(expr)
   | lhs = located(expr) operator = located(OPERATION_ISEQ) rhs = located(expr)
+  | lhs = located(expr) operator = located(OPERATION_ISNEQ) rhs = located(expr)
   | lhs = located(expr) operator = located(OPERATION_LEQ) rhs = located(expr)
   | lhs = located(expr) operator = located(OPERATION_GEQ) rhs = located(expr)
   | lhs = located(expr) operator = located(OPERATION_LESS) rhs = located(expr)

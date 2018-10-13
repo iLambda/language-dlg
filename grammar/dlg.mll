@@ -152,6 +152,7 @@ and token isinline = parse
   | "&&"                 { OPERATION_AND    (Lexing.lexeme lexbuf) }
   | "||"                 { OPERATION_OR     (Lexing.lexeme lexbuf) }
   | "="                 { OPERATION_ISEQ   (Lexing.lexeme lexbuf) }
+  | "!="                 { OPERATION_ISNEQ   (Lexing.lexeme lexbuf) }
   | "<="                { OPERATION_LEQ    (Lexing.lexeme lexbuf) }
   | ">="                { OPERATION_GEQ    (Lexing.lexeme lexbuf) }
   | "<"                 { OPERATION_LESS   (Lexing.lexeme lexbuf) }

@@ -29,6 +29,7 @@ let print_tok = function
   | OPERATION_LESS s -> s
   | OPERATION_LEQ s -> s
   | OPERATION_ISEQ s -> s
+  | OPERATION_ISNEQ s -> s
   | OPERATION_GEQ s -> s
   | OPERATION_DIVIDE s -> s
   | OPERATION_AND s -> s
