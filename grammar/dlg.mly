@@ -141,7 +141,7 @@ instruction:
   | msg = located(message)
     { IMessage msg }
   (** a choice **)
-  | OPERATOR_CHOICE INDENT options=list(choiceoption) OUTDENT
+  | OPERATOR_CHOICE INDENT options=list(choice) OUTDENT
     { IChoice(options) }
   (** a condition **)
   | OPERATOR_CHOICE condition=located(expr) INDENT branches=list(branch) OUTDENT
@@ -158,7 +158,7 @@ instruction:
 
 
 (** a possible choice **)
-choiceoption:
+choice:
   | OPERATOR_CHOICEOPTION str=located(message) INDENT s=located(subprogram) OUTDENT
     { (str, s) }
 
