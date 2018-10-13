@@ -153,7 +153,7 @@ instruction:
   | KEYWORD_SPEED n=located(expr)
     { ISpeed n }
   (** a send command **)
-  | KEYWORD_SEND id=located(identifier_var) arg=option(located(expr))
+  | KEYWORD_SEND id=located(identifier_obj) arg=option(located(expr))
     { ISend (id, arg) }
 
 
