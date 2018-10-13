@@ -17,7 +17,7 @@ and instruction =
   (** A ifnset variable statement (if not set, do) **)
   | IIfnset of scope located * identifier located * expression located
   (** A wait n seconds statement **)
-  | IWait of literal located
+  | IWait of expression located
   (** A nop instruction (do nothing) **)
   | INop
   (** A 'print message' instruction **)

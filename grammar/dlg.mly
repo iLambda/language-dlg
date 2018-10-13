@@ -130,7 +130,7 @@ instruction:
     }
 
   (** a wait instruction **)
-  | KEYWORD_WAIT n=located(number)
+  | KEYWORD_WAIT n=located(expr)
     { IWait n }
   (** a nop (do nothing) **)
   | KEYWORD_NOP
