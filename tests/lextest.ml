@@ -43,6 +43,7 @@ let print_tok = function
   | KEYWORD_WAIT -> "wait"
   | KEYWORD_SET -> "set"
   | KEYWORD_NORUSH -> "norush"
+  | KEYWORD_SEND -> "send"
   | KEYWORD_OBJECT -> "SCOPE(object)"
   | KEYWORD_NOP -> "nop"
   | KEYWORD_NOACK -> "noack"

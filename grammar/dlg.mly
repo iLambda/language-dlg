@@ -23,6 +23,7 @@
 %token KEYWORD_WHEN
 %token KEYWORD_NORUSH
 %token KEYWORD_NOACK
+%token KEYWORD_SEND
 %token KEYWORD_OBJECT
 %token KEYWORD_SPEED
 
@@ -125,6 +126,10 @@ instruction:
   (** a speed **)
   | KEYWORD_SPEED n=located(expr)
     { ISpeed n }
+  (** a send command **)
+  | KEYWORD_SEND id=located(identifier_var) arg=option(located(expr))
+    { ISend (id, arg) }
+
 
 (** a possible choice **)
 choiceoption:

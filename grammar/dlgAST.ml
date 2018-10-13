@@ -28,6 +28,8 @@ and instruction =
   | ICondition of expression located * ((pattern located * program located) list)
   (** A speed command **)
   | ISpeed of expression located
+  (** A send command **)
+  | ISend of identifier located * (expression located option)
 
 and expression =
   (** A literal (const value) **)

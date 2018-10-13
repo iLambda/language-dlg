@@ -138,6 +138,7 @@ and token isinline = parse
   | "when"           { KEYWORD_WHEN }
   | "norush"         { KEYWORD_NORUSH }
   | "noack"         { KEYWORD_NOACK }
+  | "send"         { KEYWORD_SEND }
   | "speed"         { KEYWORD_SPEED }
 
   (* Literals *)
