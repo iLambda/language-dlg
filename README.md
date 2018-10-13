@@ -67,7 +67,7 @@ pattern ::=
           ; a simple value
             | expression
           ; a binding pattern with a condition
-            |  identifier_var when expr
+            |  const_id when expr
 
 ; a literal
 literal ::=
@@ -90,8 +90,9 @@ stringtoken ::=
               | $expr$
               | \c{ (#color)? }
 color ::= #[0-9A-Fa-f]{3} | #[0-9A-Fa-f]{6}
-char ::= [A-Za-z]+
 
 ; identifiers
+object_id ::= const_id.const_id(.const_id)*
+const_id ::= [a-zA-Z_][a-zA-Z0-9_]*
 
 ```
