@@ -34,6 +34,8 @@ and expression =
   | EVar of identifier located
   (** An operation **)
   | EOperation of string located * expression located list
+  (** A function call **)
+  | EFunc of identifier located * arglist located
 
 and pattern =
   (** A wildcard **)

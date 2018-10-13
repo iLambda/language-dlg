@@ -154,6 +154,9 @@ expr:
   (* bracketing expression *)
   | PUNCTUATION_LPAREN e=expr PUNCTUATION_RPAREN
     { e }
+  | id=located(identifier_var) args=located(arg_list)
+    { EFunc (id, args) }
+
   (* infix operators *)
   | lhs = located(expr) operator = located(OPERATION_PLUS) rhs = located(expr)
   | lhs = located(expr) operator = located(OPERATION_MINUS) rhs = located(expr)
