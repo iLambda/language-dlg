@@ -4,7 +4,7 @@ DLG is a scripting language bundled with expression evaluation & code interactiv
 
 ## What is it for ?
 
-## The DLG language
+## DLG language
 
 ### Semantics
 
@@ -57,9 +57,9 @@ infixop ::= + | - | * | / | && | || | = | != | <= | >= | < | >
 
 
 ; a choice displayed
-choice ::= -message INDENT program OUTDENT
+choice ::= >message INDENT program OUTDENT
 ; a branch
-branch ::= -pattern INDENT program OUTDENT
+branch ::= >pattern INDENT program OUTDENT
 ; a pattern
 pattern ::=
           ; a wildcard token
@@ -96,3 +96,5 @@ object_id ::= const_id.const_id(.const_id)*
 const_id ::= [a-zA-Z_][a-zA-Z0-9_]*
 
 ```
+
+## DLG bytecode

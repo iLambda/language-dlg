@@ -41,7 +41,6 @@
 
 (* Operators *)
 %token OPERATOR_CHOICE
-%token OPERATOR_CHOICEOPTION
 %token OPERATOR_MESSAGE
 %token OPERATOR_WILDCARD
 %token OPERATOR_STRING
@@ -159,12 +158,12 @@ instruction:
 
 (** a possible choice **)
 choice:
-  | OPERATOR_CHOICEOPTION str=located(message) INDENT s=located(subprogram) OUTDENT
+  | OPERATION_MORE str=located(message) INDENT s=located(subprogram) OUTDENT
     { (str, s) }
 
 (* Pattern matching *)
 branch:
-  | OPERATOR_CHOICEOPTION p=located(pattern) INDENT s=located(subprogram) OUTDENT
+  | OPERATION_MORE p=located(pattern) INDENT s=located(subprogram) OUTDENT
     { (p, s) }
 
 pattern:

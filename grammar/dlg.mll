@@ -154,23 +154,8 @@ and token isinline = parse
   | id_dlg_object as id { ID_OBJECT id }
   | id_dlg_const as id  { ID_VAR id  }
 
-  (* Operations *)
-  | "+"                  { OPERATION_PLUS   (Lexing.lexeme lexbuf) }
-  | "-"                  { OPERATION_MINUS  (Lexing.lexeme lexbuf) }
-  | "*"                  { OPERATION_STAR   (Lexing.lexeme lexbuf) }
-  | "/"                  { OPERATION_DIVIDE (Lexing.lexeme lexbuf) }
-  | "&&"                 { OPERATION_AND    (Lexing.lexeme lexbuf) }
-  | "||"                 { OPERATION_OR     (Lexing.lexeme lexbuf) }
-  | "="                 { OPERATION_ISEQ   (Lexing.lexeme lexbuf) }
-  | "!="                 { OPERATION_ISNEQ   (Lexing.lexeme lexbuf) }
-  | "<="                { OPERATION_LEQ    (Lexing.lexeme lexbuf) }
-  | ">="                { OPERATION_GEQ    (Lexing.lexeme lexbuf) }
-  | "<"                 { OPERATION_LESS   (Lexing.lexeme lexbuf) }
-  | ">"                 { OPERATION_MORE   (Lexing.lexeme lexbuf) }
-
   (* Operators *)
   | '?'             { OPERATOR_CHOICE }
-  | '-'             { OPERATOR_CHOICEOPTION }
   | '"'
     {
       (* if we are inline, just send symbol*)
@@ -192,6 +177,20 @@ and token isinline = parse
         end
     }
   | '_'             { OPERATOR_WILDCARD }
+
+  (* Operations *)
+  | "+"                  { OPERATION_PLUS   (Lexing.lexeme lexbuf) }
+  | "-"                  { OPERATION_MINUS  (Lexing.lexeme lexbuf) }
+  | "*"                  { OPERATION_STAR   (Lexing.lexeme lexbuf) }
+  | "/"                  { OPERATION_DIVIDE (Lexing.lexeme lexbuf) }
+  | "&&"                 { OPERATION_AND    (Lexing.lexeme lexbuf) }
+  | "||"                 { OPERATION_OR     (Lexing.lexeme lexbuf) }
+  | "="                 { OPERATION_ISEQ   (Lexing.lexeme lexbuf) }
+  | "!="                 { OPERATION_ISNEQ   (Lexing.lexeme lexbuf) }
+  | "<="                { OPERATION_LEQ    (Lexing.lexeme lexbuf) }
+  | ">="                { OPERATION_GEQ    (Lexing.lexeme lexbuf) }
+  | "<"                 { OPERATION_LESS   (Lexing.lexeme lexbuf) }
+  | ">"                 { OPERATION_MORE   (Lexing.lexeme lexbuf) }
 
   (* Punctuation *)
   | '%'             { PUNCTUATION_PERCENT }

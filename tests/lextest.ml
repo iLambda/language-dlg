@@ -20,7 +20,7 @@ let print_tok = function
   | OPERATOR_WILDCARD -> "_"
   | OPERATOR_STRING -> "\'"
   | OPERATOR_MESSAGE -> "\""
-  | OPERATOR_CHOICEOPTION -> "-"
+  (* | OPERATOR_CHOICEOPTION -> "-" *)
   | OPERATOR_CHOICE -> "?"
   | OPERATION_STAR s -> s
   | OPERATION_PLUS s -> s
