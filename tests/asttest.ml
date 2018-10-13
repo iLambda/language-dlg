@@ -133,49 +133,6 @@ and string_of_fstring_tok tok = let out = match tok with
 and string_of_id id = match id with
   | Id s -> s
 
-(*
-and print_instruction = function
-  (** A 'print message' instruction **)
-  | IMessage msg -> print_message (unlocate msg)
-  (** A choice **)
-  | IChoice choices ->
-      let rec printchoice l = match l with
-        | [] -> ""
-        | (msg, prog)::tail -> "\t-" ^ (print_message (unlocate msg)) ^ "\n" ^
-                               (indent(); print_program (unlocate prog)) ^ (deindent(); "") ^ "\n" ^ (printchoice tail)
-        | (msg, prog)::[] -> "\t-" ^ (print_message (unlocate msg)) ^ "\n" ^
-                              (indent(); print_program (unlocate prog)) ^ (deindent(); "")
-      in printchoice choices
-  (** A condition **)
-  | ICondition (ex, conditions) ->
-      let rec printcondition l = match l with
-        | [] -> ""
-        | (pat, prog)::tail -> "\t-" ^ (print_pattern (unlocate pat)) ^ "\n" ^
-                                 (indent(); indent(); print_program (unlocate prog)) ^ (deindent();deindent(); "") ^ "\n" ^ (printcondition tail)
-        | (pat, prog)::[] -> "\t-" ^ (print_pattern (unlocate pat)) ^ "\n" ^
-                                (indent(); indent(); print_program (unlocate prog)) ^ (deindent();deindent(); "")
-      in "?" ^ (print_expr (unlocate ex)) ^ "\n" ^ (printcondition conditions)
-
-and print_expr expr =
-    let rec print_args l = match l with
-      | [] -> ""
-      | arg::[] -> (print_expr (unlocate arg))
-      | arg::tail -> (print_expr (unlocate arg)) ^ ", " ^ (print_args tail)
-    in match expr with
-      (** A literal (const value) **)
-      | ELiteral lit -> print_literal (unlocate lit)
-      (** A variable **)
-      | EVar var -> print_id (unlocate var)
-      (** An operation **)
-      | EOperation (str, exprs) -> (unlocate str) ^ "(" ^ (print_args exprs) ^ ")"
-
-and print_literal = function
-  | LInt i -> Int32.to_string i
-  | LFloat f -> string_of_float f
-  | LBool b -> string_of_bool b
-  | LString fs -> "'" ^ (print_fstring fs) ^ "'"
-*)
-
 let main () =
   if Array.length Sys.argv <> 2 then usage ();
   let c = open_in Sys.argv.(1) in
