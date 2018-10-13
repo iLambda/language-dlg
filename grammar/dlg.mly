@@ -23,6 +23,7 @@
 %token KEYWORD_WHEN
 %token KEYWORD_NORUSH
 %token KEYWORD_NOACK
+%token KEYWORD_OBJECT
 
 (* Literals *)
 %token<bool> LITERAL_BOOL
@@ -176,11 +177,18 @@ expr:
     }
 
 (* Keywords *)
-scope:
+/* scope:
+  | s = scope_script { s }
+  | s = scope_runtime { s } */
+
+scope_script:
   | KEYWORD_GLOBAL
     { SGlobal }
   | KEYWORD_LOCAL
     { SLocal }
+scope_runtime:
+  | KEYWORD_OBJECT
+    { SObject }
 
 (* Identifiers *)
 identifier_var:

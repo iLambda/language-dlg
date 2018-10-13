@@ -131,11 +131,13 @@ and token isinline = parse
   | "set"            { KEYWORD_SET }
   | "ifnset"         { KEYWORD_IFNSET }
   | "global"         { KEYWORD_GLOBAL }
+  | "object"         { KEYWORD_OBJECT }
   | "local"          { KEYWORD_LOCAL }
   | "wait"           { KEYWORD_WAIT }
   | "nop"            { KEYWORD_NOP }
   | "when"           { KEYWORD_WHEN }
   | "norush"         { KEYWORD_NORUSH }
+  | "noack"         { KEYWORD_NOACK }
 
   (* Literals *)
   | ("true"|"false") as s     { LITERAL_BOOL (bool_of_string s ) }
@@ -262,6 +264,21 @@ and message mode = parse
       message mode lexbuf
     }
 
+  | "\n"" "*
+    {
+      (* if we are in message mode*)
+      match mode with
+        | ModeMessage -> begin
+          (* add a newline string constant *)
+          string_append (STRING_CONST "\n");
+          (* increment the line in the lexer *)
+          Lexing.new_line lexbuf;
+          (* keep parsing *)
+          message mode lexbuf
+          end
+        | ModeLiteral -> error lexbuf "newline inside string literal"
+    }
+
   (* a color tag TODO : won't work because stringatom matches "\c" *)
   | "\\c{" '#'? (colorhash as s) "}"
     {
@@ -316,7 +333,7 @@ and message mode = parse
       message mode lexbuf
     }
   (* a character *)
-  | _               { error lexbuf "invalid character in string"}
+  | _               { error lexbuf "invalid character in string" }
 
 (* Rule for incrementing INDENT counter *)
 and incrcount = parse

@@ -12,9 +12,9 @@ let print_tok = function
     | None -> "STRING_COLOR(None)"
     | Some hash -> "STRING_COLOR(" ^ hash ^ ")"
     end
-  | PUNCTUATION_RPAREN -> "RPAREN"
+  | PUNCTUATION_RPAREN -> ")"
   | PUNCTUATION_PERCENT -> "%"
-  | PUNCTUATION_LPAREN -> "LPAREN"
+  | PUNCTUATION_LPAREN -> "("
   | OUTDENT -> "OUTDENT"
   | OPERATOR_WILDCARD -> "_"
   | OPERATOR_STRING -> "\'"
@@ -36,19 +36,24 @@ let print_tok = function
   | LITERAL_INT i -> Int32.to_string i
   | LITERAL_FLOAT f -> string_of_float f
   | LITERAL_BOOL b -> string_of_bool b
+  | LITERAL_ENUM -> "enum"
+  | LITERAL_VEC2 -> "vec2"
+  | LITERAL_VEC3 -> "vec3"
   | KEYWORD_WHEN -> "when"
   | KEYWORD_WAIT -> "wait"
   | KEYWORD_SET -> "set"
   | KEYWORD_NORUSH -> "norush"
+  | KEYWORD_OBJECT -> "SCOPE(object)"
   | KEYWORD_NOP -> "nop"
   | KEYWORD_NOACK -> "noack"
-  | KEYWORD_LOCAL -> "local"
+  | KEYWORD_LOCAL -> "SCOPE(local)"
   | KEYWORD_LABEL -> "label"
   | KEYWORD_IFNSET -> "ifnset"
   | KEYWORD_GOTO -> "goto"
-  | KEYWORD_GLOBAL -> "global"
+  | KEYWORD_GLOBAL -> "SCOPE(global)"
   | INDENT -> "INDENT"
   | ID_VAR s -> "VAR(" ^ s ^ ")"
+  | ID_OBJECT s -> "OBJ(" ^ s ^ ")"
 
 
 let main () =
