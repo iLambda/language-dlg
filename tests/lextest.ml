@@ -49,6 +49,7 @@ let print_tok = function
   | KEYWORD_LOCAL -> "SCOPE(local)"
   | KEYWORD_LABEL -> "label"
   | KEYWORD_IFNSET -> "ifnset"
+  | KEYWORD_SPEED -> "speed"
   | KEYWORD_GOTO -> "goto"
   | KEYWORD_GLOBAL -> "SCOPE(global)"
   | INDENT -> "INDENT"

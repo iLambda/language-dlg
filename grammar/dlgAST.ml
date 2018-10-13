@@ -26,6 +26,8 @@ and instruction =
   | IChoice of (message located * program located) list
   (** A condition **)
   | ICondition of expression located * ((pattern located * program located) list)
+  (** A speed command **)
+  | ISpeed of expression located
 
 and expression =
   (** A literal (const value) **)

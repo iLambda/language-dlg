@@ -138,6 +138,7 @@ and token isinline = parse
   | "when"           { KEYWORD_WHEN }
   | "norush"         { KEYWORD_NORUSH }
   | "noack"         { KEYWORD_NOACK }
+  | "speed"         { KEYWORD_SPEED }
 
   (* Literals *)
   | ("true"|"false") as s     { LITERAL_BOOL (bool_of_string s ) }

@@ -24,6 +24,7 @@
 %token KEYWORD_NORUSH
 %token KEYWORD_NOACK
 %token KEYWORD_OBJECT
+%token KEYWORD_SPEED
 
 (* Literals *)
 %token<bool> LITERAL_BOOL
@@ -121,6 +122,9 @@ instruction:
   (** a condition **)
   | OPERATOR_CHOICE condition=located(expr) INDENT branches=list(branch) OUTDENT
     { ICondition(condition, branches) }
+  (** a speed **)
+  | KEYWORD_SPEED n=located(expr)
+    { ISpeed n }
 
 (** a possible choice **)
 choiceoption:
