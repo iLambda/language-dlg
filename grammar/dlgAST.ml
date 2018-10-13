@@ -67,7 +67,7 @@ and literal =
 
 and arglist = expression located list
 
-and message = fstring located * messageopt located list
+and message = fstring * messageopt located list
 and messageopt =
   | MsgNoRush
   | MsgNoAcknowledge

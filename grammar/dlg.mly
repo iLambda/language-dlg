@@ -245,7 +245,8 @@ identifier_obj:
 literal:
   | b = LITERAL_BOOL { LBool b }
   | n = number       { n }
-  | OPERATOR_STRING str=stringcontents OPERATOR_STRING { LString str }
+  | OPERATOR_STRING str=option(stringcontents) OPERATOR_STRING
+    { LString (match str with | None -> [] | Some l -> l) }
   | LITERAL_VEC2 PUNCTUATION_LPAREN x=located(expr) PUNCTUATION_COMMA y=located(expr) PUNCTUATION_RPAREN
     {
       LVec2 (x, y)
@@ -265,9 +266,11 @@ number:
 
 (* Messages & options*)
 message:
-  | OPERATOR_MESSAGE str=located(stringcontents) OPERATOR_MESSAGE
+  | OPERATOR_MESSAGE OPERATOR_MESSAGE
+    { ([], []) }
+  | OPERATOR_MESSAGE str=stringcontents OPERATOR_MESSAGE
     { (str, []) }
-  | OPERATOR_MESSAGE str=located(stringcontents) OPERATOR_MESSAGE opts=messageopts
+  | OPERATOR_MESSAGE str=stringcontents OPERATOR_MESSAGE opts=messageopts
     { (str, opts) }
 
 messageopts:
