@@ -32,6 +32,7 @@
 %token LITERAL_VEC3
 %token LITERAL_ENUM
 (* Identifiers *)
+%token<string> ID_OBJECT
 %token<string> ID_VAR
 
 (* Operators *)
@@ -184,6 +185,10 @@ scope:
 (* Identifiers *)
 identifier_var:
   | id = ID_VAR
+    { Id id }
+
+identifier_obj:
+  | id = ID_OBJECT
     { Id id }
 
 (* Literals *)

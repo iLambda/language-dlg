@@ -70,6 +70,7 @@ let comment = ';'
 
 (* Identifiers *)
 let id_dlg_const  = ['a'-'z' 'A'-'Z' '_']['a'-'z' 'A'-'Z' '_' '0'-'9']*
+let id_dlg_object = id_dlg_const '.' id_dlg_const ('.' id_dlg_const)*
 
 (* Literals *)
 let lit_integer =   ('-'?['0'-'9']+)
@@ -145,7 +146,8 @@ and token isinline = parse
   | "enum"                    { LITERAL_ENUM }
 
   (* Identifiers *)
-  | id_dlg_const as id  { ID_VAR(id) }
+  | id_dlg_object as id { ID_OBJECT id }
+  | id_dlg_const as id  { ID_VAR id  }
 
   (* Operations *)
   | "+"                  { OPERATION_PLUS   (Lexing.lexeme lexbuf) }
