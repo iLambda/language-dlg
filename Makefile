@@ -28,7 +28,7 @@ build/dlgParser.cmx: build/dlgParser.ml
 build/dlgLexer.ml:
 				$(LEX) grammar/dlg.mll -o build/dlgLexer.ml
 build/dlgParser.ml:
-				$(YACC) grammar/dlg.mly --explain --base build/dlgParser
+				$(YACC) grammar/dlg.mly --explain --base build/dlgParser --fixed-exception
 
 clean:
 	    rm -rf tests/*.cmi tests/*.cmx tests/*.o tests/*.cmt
