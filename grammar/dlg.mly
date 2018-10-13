@@ -164,18 +164,18 @@ choice:
 
 (* Pattern matching *)
 branch:
-  | p=located(pattern) INDENT s=located(subprogram) OUTDENT
+  | OPERATOR_CHOICEOPTION p=located(pattern) INDENT s=located(subprogram) OUTDENT
     { (p, s) }
 
 pattern:
   (** a wildcard **)
-  | OPERATOR_CHOICEOPTION OPERATOR_WILDCARD
+  | OPERATOR_WILDCARD
     { PWildcard }
   (** a simple value **)
-  | OPERATOR_CHOICEOPTION value=located(expr)
+  | value=located(expr)
     { PValue value }
   (** a binding pattern **)
-  | OPERATOR_CHOICEOPTION id=located(identifier_var) KEYWORD_WHEN e=located(expr)
+  | id=located(identifier_var) KEYWORD_WHEN e=located(expr)
     { PBinding (id, e) }
 
 (* Expressions *)
