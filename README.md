@@ -1,0 +1,67 @@
+# language-dlg
+
+DLG is a scripting language bundled with expression evaluation & code interactivity for narratives in games.
+
+## Grammar
+
+The grammar for the DLG language is the following :
+
+```dlg
+; a program is a sequential list of instructions
+program ::= { instruction }
+
+; one action. usually occupies one line
+instruction ::=
+              ; text content senders
+                | message [{message_opt }]
+                | ? INDENT choice [{, choice}] OUTDENT
+              ; text display options
+                | speed expr
+              ; flow control
+                | ? expression INDENT { branches } OUTDENT
+                | wait expression
+                | label const_id
+                | goto const_id
+                | nop
+              ; variable related
+                | set scope const_id
+                | set [object] obj_id
+                | ifnset scope const_id
+                | ifnset [object] obj_id
+              ; game program interactivity
+                | invoke obj_id ([expr{, expr}])
+                | send obj_id [expr]
+                | wait const_id expr
+
+; an expression
+expr ::=
+       ; a literal
+       | literal
+       ; a variable identifier
+       | const_id
+       ; bracketing
+       | (expr)
+       ; a function call
+       | const_id([expr{, expr}])
+       ; an operator call
+       | expr infixop expr
+
+; an infix operator
+infixop ::= + | - | * | / | && | || | = | != | <= | >= | < | >
+
+
+; a choice displayed
+choice ::= -message INDENT program OUTDENT
+; a branch
+branch ::= -pattern INDENT program OUTDENT
+; a pattern
+pattern ::=
+          ; a wildcard token
+          _
+          ; a simple value
+          expression
+          ; a binding pattern with a condition
+          identifier_var when expr
+
+
+```
