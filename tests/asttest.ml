@@ -30,7 +30,11 @@ and string_of_instruction instr = match instr with
   | IGoto id -> "goto " ^ (string_of_id (unlocate id))
   | ISet (sc, id, expr) -> "set " ^ (string_of_scope (unlocate sc)) ^ " " ^ (string_of_id (unlocate id)) ^ " " ^ (string_of_expr (unlocate expr))
   | IIfnset (sc, id, expr) -> "ifnset " ^ (string_of_scope (unlocate sc)) ^ " " ^ (string_of_id (unlocate id)) ^ " " ^ (string_of_expr (unlocate expr))
-  | IWait expr -> "wait " ^ (string_of_expr (unlocate expr))
+  | IWait (evt, expr) -> let event = begin match evt with
+      | Some ev -> (string_of_id (unlocate ev))
+      | None -> "_"
+    end in
+    "wait " ^ event ^ " " ^ (string_of_expr (unlocate expr))
   | INop -> "nop"
   | IMessage msg -> (string_of_message (unlocate msg))
   | IChoice choices ->
@@ -55,8 +59,18 @@ and string_of_instruction instr = match instr with
         )
       in let prefix = "?" ^ (string_of_expr (unlocate ex)) ^ "\n" ^ (let () = indent() in (string_of_conditions conditions))
       in prefix ^ (let () = deindent() in string_of_indent())
-
-  | _ -> "[UNDEFINED]"
+  | IInvoke (func, args) ->
+    let rec print_args l = match l with
+      | [] -> ""
+      | arg::[] -> (string_of_expr (unlocate arg))
+      | arg::tail -> (string_of_expr (unlocate arg)) ^ ", " ^ (print_args tail)
+    in "invoke " ^ (string_of_id (unlocate func)) ^ "(" ^ (print_args (unlocate args)) ^ ")"
+  | ISpeed ex -> "speed " ^ (string_of_expr (unlocate ex))
+  | ISend (id, arg) ->
+    let argstr = match arg with
+      | None -> "_"
+      | Some x -> string_of_expr (unlocate x)
+    in "send " ^ (string_of_id (unlocate id)) ^ " " ^ argstr
 
 and string_of_pattern p = match p with
   | PWildcard -> "_"
@@ -88,7 +102,7 @@ and string_of_message msg =
     | [] -> ""
     | h::t -> (string_of_messageopt (unlocate h)) ^ " " ^ (string_of_messageopts t)
   in match msg with
-    | str, opts -> "\"" ^ (string_of_fstring (unlocate str)) ^ "\" " ^ (string_of_messageopts opts)
+    | str, opts -> "\"" ^ (string_of_fstring str) ^ "\" " ^ (string_of_messageopts opts)
 
 and string_of_messageopt = function
   | MsgNoRush -> "norush"
