@@ -54,7 +54,7 @@ and pattern =
 and scope =
   | SGlobal
   | SLocal
-  | SObject
+  | SExtern
 
 and literal =
   | LInt    of int32

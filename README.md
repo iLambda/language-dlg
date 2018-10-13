@@ -31,12 +31,12 @@ instruction ::=
                 | nop
               ; variable related
                 | set [global|local] const_id
-                | set [object] obj_id
+                | set [extern] extern_id
                 | ifnset [global|local] const_id
-                | ifnset [object] obj_id
+                | ifnset [extern] extern_id
               ; game program interactivity
-                | invoke obj_id ([expr{, expr}])
-                | send obj_id [expr]
+                | invoke extern_id ([expr{, expr}])
+                | send extern_id [expr]
                 | wait const_id expr
 
 ; an expression
@@ -92,7 +92,7 @@ stringtoken ::=
 color ::= #[0-9A-Fa-f]{3} | #[0-9A-Fa-f]{6}
 
 ; identifiers
-object_id ::= const_id.const_id(.const_id)*
+extern_id ::= const_id.const_id(.const_id)*
 const_id ::= [a-zA-Z_][a-zA-Z0-9_]*
 
 ```

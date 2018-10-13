@@ -131,7 +131,7 @@ and token isinline = parse
   | "set"            { KEYWORD_SET }
   | "ifnset"         { KEYWORD_IFNSET }
   | "global"         { KEYWORD_GLOBAL }
-  | "object"         { KEYWORD_OBJECT }
+  | "extern"         { KEYWORD_EXTERN }
   | "local"          { KEYWORD_LOCAL }
   | "wait"           { KEYWORD_WAIT }
   | "nop"            { KEYWORD_NOP }
@@ -141,6 +141,7 @@ and token isinline = parse
   | "invoke"         { KEYWORD_INVOKE }
   | "send"         { KEYWORD_SEND }
   | "speed"         { KEYWORD_SPEED }
+  | "then"         { KEYWORD_THEN }
 
   (* Literals *)
   | ("true"|"false") as s     { LITERAL_BOOL (bool_of_string s ) }

@@ -24,9 +24,10 @@
 %token KEYWORD_NORUSH
 %token KEYWORD_NOACK
 %token KEYWORD_SEND
-%token KEYWORD_OBJECT
+%token KEYWORD_EXTERN
 %token KEYWORD_INVOKE
 %token KEYWORD_SPEED
+%token KEYWORD_THEN
 
 (* Literals *)
 %token<bool> LITERAL_BOOL
@@ -112,7 +113,7 @@ instruction:
     {
       let pos = Position.position sc in
       let s = match Position.value sc with
-        | None -> Position.with_pos pos SObject
+        | None -> Position.with_pos pos SExtern
         | Some sco -> Position.with_pos pos sco
       in ISet (s, var, e)
     }
@@ -125,14 +126,17 @@ instruction:
     {
       let pos = Position.position sc in
       let s = match Position.value sc with
-        | None -> Position.with_pos pos SObject
+        | None -> Position.with_pos pos SExtern
         | Some sco -> Position.with_pos pos sco
       in IIfnset (s, var, e)
     }
 
   (** a wait instruction **)
-  | KEYWORD_WAIT event=option(located(identifier_var)) n=located(expr)
-    { IWait (event, n) }
+  | KEYWORD_WAIT n=located(expr)
+    { IWait (None, n) }
+  | KEYWORD_WAIT event=located(identifier_var) KEYWORD_THEN n=located(expr)
+    { IWait (Some event, n) }
+
   (** a nop (do nothing) **)
   | KEYWORD_NOP
     { INop }
@@ -229,8 +233,8 @@ scope_script:
   | KEYWORD_LOCAL
     { SLocal }
 scope_runtime:
-  | KEYWORD_OBJECT
-    { SObject }
+  | KEYWORD_EXTERN
+    { SExtern }
 
 (* Identifiers *)
 identifier_var:

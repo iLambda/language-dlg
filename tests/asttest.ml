@@ -95,7 +95,7 @@ and string_of_expr expr =
 and string_of_scope scope = match scope with
   | SGlobal -> "[global]"
   | SLocal -> "[local]"
-  | SObject -> "[object]"
+  | SExtern -> "[extern]"
 
 and string_of_message msg =
   let rec string_of_messageopts = function

@@ -8,7 +8,7 @@ all: clean edit
 edit:	build/dlgAST.cmx build/position.cmx build/error.cmx build/dlgLexer.cmx build/dlgParser.cmx
 				$(CC) -o build/dlglex.native -linkpkg -package sexplib,ppx_sexp_conv -I build/ build/position.cmx build/error.cmx build/dlgLexer.cmx tests/lextest.ml
 				$(CC) -o build/dlgast.native -linkpkg -package sexplib,ppx_sexp_conv -I build/ build/position.cmx build/error.cmx build/dlgAST.cmx build/dlgParser.cmx build/dlgLexer.cmx tests/asttest.ml
-				mv tests/*.cmi tests/*.cmt tests/*.cmx tests/*.o build/
+				mv tests/*.cmi tests/*.cmx tests/*.o build/
 				mv build/dlglex.native bin/dlglex
 				mv build/dlgast.native bin/dlgast
 
