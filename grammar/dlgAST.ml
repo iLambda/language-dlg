@@ -53,6 +53,9 @@ and literal =
   | LFloat  of float
   | LBool   of bool
   | LString of fstring
+  | LEnum of (identifier located) * (identifier located)
+  | LVec2 of (expression located) * (expression located)
+  | LVec3 of (expression located) * (expression located) * (expression located)
 
 and message = fstring located * messageopt located list
 and messageopt =

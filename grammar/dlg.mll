@@ -140,6 +140,9 @@ and token isinline = parse
   | ("true"|"false") as s     { LITERAL_BOOL (bool_of_string s ) }
   | lit_integer as s          { LITERAL_INT (Int32.of_string s) }
   | lit_float as s            { LITERAL_FLOAT (float_of_string s)}
+  | "vec2"                    { LITERAL_VEC2 }
+  | "vec3"                    { LITERAL_VEC3 }
+  | "enum"                    { LITERAL_ENUM }
 
   (* Identifiers *)
   | id_dlg_const as id  { ID_VAR(id) }

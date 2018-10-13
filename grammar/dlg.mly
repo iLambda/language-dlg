@@ -28,6 +28,9 @@
 %token<bool> LITERAL_BOOL
 %token<int32> LITERAL_INT
 %token<float> LITERAL_FLOAT
+%token LITERAL_VEC2
+%token LITERAL_VEC3
+%token LITERAL_ENUM
 (* Identifiers *)
 %token<string> ID_VAR
 
@@ -142,10 +145,10 @@ pattern:
 expr:
   (* a literal *)
   | lit = located(literal)
-    { ELiteral(lit) }
+    { ELiteral lit }
   (* a variable identifier *)
   | var=located(identifier_var)
-    { EVar(var) }
+    { EVar var }
   (* bracketing expression *)
   | PUNCTUATION_LPAREN e=expr PUNCTUATION_RPAREN
     { e }
@@ -188,7 +191,18 @@ literal:
   | b = LITERAL_BOOL { LBool b }
   | n = number       { n }
   | OPERATOR_STRING str=stringcontents OPERATOR_STRING { LString str }
-
+  | LITERAL_VEC2 PUNCTUATION_LPAREN x=located(expr) PUNCTUATION_COMMA y=located(expr) PUNCTUATION_RPAREN
+    {
+      LVec2 (x, y)
+    }
+  | LITERAL_VEC3 PUNCTUATION_LPAREN x=located(expr) PUNCTUATION_COMMA y=located(expr) PUNCTUATION_COMMA z=located(expr) PUNCTUATION_RPAREN
+    {
+      LVec3 (x, y, z)
+    }
+  | LITERAL_ENUM PUNCTUATION_LPAREN t=located(identifier_var) PUNCTUATION_COMMA value=located(identifier_var) PUNCTUATION_RPAREN
+    {
+      LEnum (t, value)
+    }
 number:
   | i = LITERAL_INT { LInt i }
   | f = LITERAL_FLOAT { LFloat f }
