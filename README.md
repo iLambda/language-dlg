@@ -67,7 +67,7 @@ pattern ::=
           ; a simple value
             | expression
           ; a binding pattern with a condition
-          |  identifier_var when expr
+            |  identifier_var when expr
 
 ; a literal
 literal ::=
@@ -78,7 +78,7 @@ literal ::=
           | vec2(expr, expr)
           | vec3(expr, expr, expr)
           | enum(const_id, const_id)
-          
+
 ; a message and the options
 message ::= "string" [{message_opt }]
 message_opt ::= norush | noack
