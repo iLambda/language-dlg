@@ -1,0 +1,95 @@
+;; DLG file
+
+; intro progress ids :
+;   0 : wakeup
+;   1 : livingroom
+
+? sintroprogress != 1
+  >true
+    ; this part of the intro has been seen already. do whatever.
+    nop
+
+  >false
+    ; lock player movement
+    set global lockControls true
+
+    ; intro needs to be played.
+    "Finally, $pname$!
+    You slept so much I was actually worried."
+    "Well, it's ok.
+    It seems you really needed to sleep."
+    "I'm watching some e-sport, come on, join me on the couch!"
+    ; clear tb
+    ""
+    ; unlock player movement
+    set local lockControls false
+
+    ; wait for player to reach couch
+    ;   (waiting while unlocking controls allows us to disable all potential
+    ;   interactables that could interfer with the normal behavior of this
+    ;   introduction, like doors, because we're already in a script)
+    wait PlayerReachedCouch then 100
+    ; choice to sit or stay up
+    label sitchoice
+    ?
+      >"Sit"
+        ; make player seated and clear tb
+        "(Let's sit down.)"
+        ""
+        ; send message to seatedprotag
+        send SeatedProtag.Sit
+        ; lock controls & set invisible
+        set extern Protagonist.CharacterController2D.lockControls true
+        set extern Protagonist.Protagonist.isInvisible true
+        ; wait for 300ms for everything to complete
+        wait 300
+        ; wait a bit
+        speed 5%
+        "....... " norush noack
+        speed 100%
+        ; continue
+        "(Ugh, I'm too tired to keep up with this..)"
+        "(Better check my phone)"
+        ; clear tb
+        ""
+
+        ; lock phone menu input as off and invoke
+        invoke Loader.MenuLoader.SetTriggerMode ('menu_phone', enum(MenuTriggerMode, Programatically))
+        invoke Loader.MenuLoader.ShowMenu ('menu_phone')
+        ; wait till menu up
+        wait 1000
+
+        ; send signal
+        send PhoneDialog.Event 'PhoneTutorial'
+        ; wait for signal done
+        wait PhoneTutorialDone then 500
+
+        ; ask phone menu to be open
+        invoke Loader.MenuLoader.HideMenu ('menu_phone')
+        ; lock phone menu input as off
+        invoke Loader.MenuLoader.SetTriggerMode ('menu_phone', enum(MenuTriggerMode, Key))
+
+        ; msg
+        "Well, that was something."
+
+        ; unlock because debug
+        set extern Protagonist.CharacterController2D.lockControls false
+        set extern Protagonist.Protagonist.isInvisible false
+
+      >"Stay up"
+        ; wait a bit
+        speed 5%
+        "..... " norush noack
+        speed 100%
+        ; give random answer
+        ? rand() > 0.5
+          >true
+            "Could you sit down please ?
+            You're kinda stressing me out."
+          >false
+            "Come on, sit with me !"
+        ; go back to choice
+        goto sitchoice
+
+    ; save as done
+    set global sintroprogress 2

@@ -67,7 +67,7 @@ pattern ::=
           ; a simple value
             | expression
           ; a binding pattern with a condition
-            |  const_id when expr
+            | const_id when expr
 
 ; a literal
 literal ::=
@@ -94,7 +94,6 @@ color ::= #[0-9A-Fa-f]{3} | #[0-9A-Fa-f]{6}
 ; identifiers
 extern_id ::= const_id.const_id(.const_id)*
 const_id ::= [a-zA-Z_][a-zA-Z0-9_]*
-
 ```
 
 ## DLG bytecode

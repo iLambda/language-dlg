@@ -6,6 +6,4 @@ bin
 *.cmx
 *.o
 *.cmt
-*.dlg.tok
-*.dlg
 TOASK
