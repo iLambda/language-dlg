@@ -13,7 +13,7 @@ program ::= { instruction }
 ; one action. usually occupies one line
 instruction ::=
               ; text content senders
-                | message [{message_opt }]
+                | message
                 | ? INDENT choice [{, choice}] OUTDENT
               ; text display options
                 | speed expr
@@ -24,9 +24,9 @@ instruction ::=
                 | goto const_id
                 | nop
               ; variable related
-                | set scope const_id
+                | set [global|local] const_id
                 | set [object] obj_id
-                | ifnset scope const_id
+                | ifnset [global|local] const_id
                 | ifnset [object] obj_id
               ; game program interactivity
                 | invoke obj_id ([expr{, expr}])
@@ -63,5 +63,28 @@ pattern ::=
           ; a binding pattern with a condition
           identifier_var when expr
 
+; a literal
+literal ::=
+          | int32[%]
+          | float
+          | 'string'
+          | true | false
+          | vec2(expr, expr)
+          | vec3(expr, expr, expr)
+          | enum(const_id, const_id)
+; a message and the options
+message ::= "string" [{message_opt }]
+message_opt ::= norush | noack
+
+; a string
+string ::= [{ stringtoken }]
+stringtoken ::=
+              | char*
+              | $expr$
+              | \c{ (#color)? }
+color ::= #[0-9A-Fa-f]{3} | #[0-9A-Fa-f]{6}
+char ::= [A-Za-z]+
+
+; identifiers
 
 ```
