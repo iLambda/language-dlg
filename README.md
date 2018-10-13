@@ -2,9 +2,15 @@
 
 DLG is a scripting language bundled with expression evaluation & code interactivity for narratives in games.
 
-## Grammar
+## What is it for ?
 
-The grammar for the DLG language is the following :
+## The DLG language
+
+### Semantics
+
+### Syntax & grammar
+
+The grammar for the DLG language implemented in the compiler in is the following :
 
 ```dlg
 ; a program is a sequential list of instructions
