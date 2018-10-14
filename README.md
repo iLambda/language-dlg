@@ -30,21 +30,23 @@ instruction ::=
                 | goto const_id
                 | nop
               ; variable related
-                | set [global|local] const_id
+                | set global|local const_id
                 | set [extern] extern_id
-                | ifnset [global|local] const_id
+                | ifnset global|local const_id
                 | ifnset [extern] extern_id
               ; game program interactivity
                 | invoke extern_id ([expr{, expr}])
-                | send extern_id [expr]
+                | send extern_id   [expr]
                 | wait const_id then expr
 
 ; an expression
 expr ::=
        ; a literal
          | literal
-       ; a variable identifier
-         | const_id
+       ; a variable
+         | [local] const_id
+         | [global|#] const_id
+         | [extern] extern_id
        ; bracketing
          | (expr)
        ; a function call
