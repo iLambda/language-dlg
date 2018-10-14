@@ -123,7 +123,7 @@ and string_of_fstring = function
 
 and string_of_fstring_tok tok = let out = match tok with
    | StrConst s -> String.escaped s
-   | StrInline e -> "$(" ^ (string_of_expr (unlocate e)) ^ ")"
+   | StrInline e -> (string_of_expr (unlocate e))
    | StrColor col -> begin match col with
      | None -> "[#{}]"
      | Some s -> "[#{" ^ s ^ "}]"
