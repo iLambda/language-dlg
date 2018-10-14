@@ -1,4 +1,4 @@
-grammar/_build
+_build
 *.old
 build
 bin
