@@ -188,6 +188,7 @@ and token isinline = parse
   | "/"                  { OPERATION_DIVIDE (Lexing.lexeme lexbuf) }
   | "&&"                 { OPERATION_AND    (Lexing.lexeme lexbuf) }
   | "||"                 { OPERATION_OR     (Lexing.lexeme lexbuf) }
+  | "=="                 { OPERATION_ISEQ   "=" }
   | "="                 { OPERATION_ISEQ   (Lexing.lexeme lexbuf) }
   | "!="                 { OPERATION_ISNEQ   (Lexing.lexeme lexbuf) }
   | "<="                { OPERATION_LEQ    (Lexing.lexeme lexbuf) }
