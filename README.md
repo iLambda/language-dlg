@@ -62,6 +62,8 @@ expr ::=
          | const_id([expr{, expr}])
        ; an operator call
          | expr infixop expr
+       ; a ternary condiction
+         | expr ?= expr : expr
 
 ; an infix operator
 infixop ::= + | - | * | / | && | || | = | != | <= | >= | < | >
