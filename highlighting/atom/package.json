@@ -1,0 +1,15 @@
+{
+  "name": "language-dlg",
+  "main": "./lib/language-dlg",
+  "version": "0.0.2",
+  "description": "A grammar parser for DLG dialog files.",
+  "keywords": [
+  ],
+  "repository": "https://github.com/atom/language-dlg",
+  "license": "MIT",
+  "engines": {
+    "atom": ">=1.0.0 <2.0.0"
+  },
+  "dependencies": {
+  }
+}

@@ -1,0 +1,108 @@
+# TextMate tutorial: http://manual.macromates.com/en/language_grammars
+
+# Regex to convert keys to unquoted: '(include|match|captures|begin|end|beginCaptures|endCaptures|name|patterns|0|1|2|3|4|5|6|7|8|9|comment|fileTypes|scopeName|repository|contentName|firstLineMatch|foldingStartMarker|foldingStopMarker)':
+
+scopeName: 'source.dlg' # <scope> should be a short, unique indicator for the language ("js", "php", "c", etc.)
+name: 'DLG Dialog Files' # The title that will show up in grammar selection and on your status bar.
+fileTypes: [ # An array of file extensions.
+  'dlg'
+]
+firstLineMatch: ';; ?DLG' # A regular expression that is matched against the first line of the document when Atom is trying to decide if the grammar is appropriate. Useful for shell scripts, mostly.
+foldingStartMarker: '' # A regular expression that checks for the start of a foldable area (such as `{`).
+foldingStopMarker: '' # A regular expression that checks for the end of a foldable area (such as `}`). If both folding markers are matched in the same line, there will be no foldable area.
+patterns: [ # An array of individual pattern declarations.
+  {
+    match: ' *\\b(label|goto|set|ifnset|global|extern|local|wait|nop|when|norush|noack|invoke|send|speed|then)\\b'
+    name: 'keyword.control.query.dlg'
+  },
+  {
+    match: ' *\\b(local|global|extern)\\b'
+    name: 'keyword.control.storage.dlg'
+  },
+  {
+    match: '\\b((-?[0-9]+)|(0x[0-9a-fA-F]+)|(0b[0-1]+)|(0o[0-7]+))\\b'
+    name: 'constant.numeric.decimal.dlg'
+  },
+  {
+    match: '\\b-?[0-9A-Fa-f]+\\.[0-9]+\\b'
+    name: 'constant.numeric.decimal.dlg'
+  },
+  {
+    match: ';.*$'
+    name: 'comment.line.character.dlg'
+  },
+  {
+    match: '\\b([a-zA-Z_][a-zA-Z_0-9]+)\\.[a-zA-Z_][a-zA-Z_0-9]+(\\.[a-zA-Z_][a-zA-Z_0-9]+)*\\b'
+    name: 'entity.other.send.dlg'
+    captures:
+      1:
+        name: 'support.type.dlg'
+  },
+  {
+    begin: '"'
+    end: '"'
+    name: 'string.quoted.double.dlg',
+    patterns: [
+      {
+        match: '(\\c{#?[0-9A-Fa-f]{6}})|(\\c{#?[0-9A-Fa-f]{3}})|\\c{#?}'
+        name: 'constant.character.escape.dlg'
+      },
+      # {
+      #   match: '\\$[^\\$]+\\$'
+      #   name: 'string.regexp.dlg'
+      # },
+      {
+        begin: "\\$"
+        end: "\\$"
+        name: 'string.regexp.dlg'
+        patterns: []
+      }
+    ]
+  },
+  {
+    begin: '\''
+    end: '\''
+    name: 'string.quoted.single.dlg',
+    patterns: [
+      {
+        match: '(\\c{#?[0-9A-Fa-f]{6}})|(\\c{#?[0-9A-Fa-f]{3}})|\\c{#?}'
+        name: 'constant.character.escape.dlg'
+      },
+      # {
+      #   match: '\\$[^\\$]+\\$'
+      #   name: 'string.regexp.dlg'
+      # },
+      {
+        begin: "\\$"
+        end: "\\$"
+        name: 'string.regexp.dlg'
+        patterns: []
+      }
+    ]
+  },
+  {
+    match: '\\?|>'
+    name: 'keyword.operator.dlg'
+  },
+  {
+    match: '\\b(true|false)\\b'
+    name: 'constant.language.boolean.dlg'
+  },
+  {
+    match: '\\b(vec[23]|enum)\\('
+    name: 'entity.other.send.dlg'
+    captures:
+      1:
+        name: 'support.type.dlg'
+  }
+]
+repository: # An array of rules. If you're going to be referencing one bit of code over and over again, stick it here so that you can edit all in one place.
+  ruleName: # Can be anything.
+    {
+      name: ''
+      match: ''
+      end: ''
+      endCaptures:
+        0:
+          name: ''
+    }
