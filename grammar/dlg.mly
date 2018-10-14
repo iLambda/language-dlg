@@ -71,6 +71,8 @@
 %token PUNCTUATION_LPAREN
 %token PUNCTUATION_RPAREN
 %token PUNCTUATION_COMMA
+%token PUNCTUATION_COLON
+%token PUNCTUATION_HASH
 
 %start<DlgAST.t> program
 
@@ -188,7 +190,7 @@ expr:
   | lit = located(literal)
     { ELiteral lit }
   (* a variable identifier *)
-  | var=located(identifier_var)
+  | var=located(variable)
     { EVar var }
   (* bracketing expression *)
   | PUNCTUATION_LPAREN e=expr PUNCTUATION_RPAREN
@@ -236,6 +238,19 @@ scope_script:
 scope_runtime:
   | KEYWORD_EXTERN
     { SExtern }
+
+(* Variable *)
+variable:
+  | sc=scope_runtime PUNCTUATION_COLON id=identifier_obj
+    { (sc, id) }
+  | sc=scope_script PUNCTUATION_COLON id=identifier_var
+    { (sc, id) }
+  | id=identifier_var
+    { (SLocal, id) }
+  | PUNCTUATION_HASH id=identifier_var
+    { (SGlobal, id) }
+  | id=identifier_obj
+    { (SExtern, id) }
 
 (* Identifiers *)
 identifier_var:

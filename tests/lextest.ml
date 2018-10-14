@@ -60,6 +60,8 @@ let print_tok = function
   | INDENT -> "INDENT"
   | ID_VAR s -> "VAR(" ^ s ^ ")"
   | ID_OBJECT s -> "OBJ(" ^ s ^ ")"
+  | PUNCTUATION_HASH -> "#"
+  | PUNCTUATION_COLON -> ":"
 
 
 let main () =

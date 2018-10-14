@@ -37,7 +37,7 @@ and expression =
   (** A literal (const value) **)
   | ELiteral of literal located
   (** A variable **)
-  | EVar of identifier located
+  | EVar of (scope * identifier) located
   (** An operation **)
   | EOperation of string located * expression located list
   (** A function call **)

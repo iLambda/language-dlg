@@ -86,16 +86,16 @@ and string_of_expr expr =
     (** A literal (const value) **)
     | ELiteral lit -> string_of_literal (unlocate lit)
     (** A variable **)
-    | EVar var -> string_of_id (unlocate var)
+    | EVar var -> let sc, id = unlocate var in "{" ^ (string_of_scope sc) ^ ":" ^ (string_of_id id) ^ "}"
     (** An operation **)
     | EOperation (str, exprs) -> (unlocate str) ^ "(" ^ (print_args exprs) ^ ")"
     (** A function call **)
     | EFunc (id, args) -> (string_of_id (unlocate id)) ^ ":(" ^ (print_args (unlocate args)) ^ ")"
 
 and string_of_scope scope = match scope with
-  | SGlobal -> "[global]"
-  | SLocal -> "[local]"
-  | SExtern -> "[extern]"
+  | SGlobal -> "global"
+  | SLocal -> "local"
+  | SExtern -> "extern"
 
 and string_of_message msg =
   let rec string_of_messageopts = function

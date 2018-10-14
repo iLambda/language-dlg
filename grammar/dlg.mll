@@ -199,6 +199,8 @@ and token isinline = parse
   | '('             { PUNCTUATION_LPAREN }
   | ')'             { PUNCTUATION_RPAREN }
   | ','             { PUNCTUATION_COMMA }
+  | ':'             { PUNCTUATION_COLON }
+  | '#'             { PUNCTUATION_HASH }
 
   (* Closing a string inline *)
   | '$'

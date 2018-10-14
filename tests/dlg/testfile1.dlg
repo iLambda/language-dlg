@@ -14,7 +14,7 @@
     set global lockControls true
 
     ; intro needs to be played.
-    "Finally, $pname$!
+    "Finally, $global:pname$!
     You slept so much I was actually worried."
     "Well, it's ok.
     It seems you really needed to sleep."
@@ -74,7 +74,7 @@
 
         ; unlock because debug
         set extern Protagonist.CharacterController2D.lockControls false
-        set extern Protagonist.Protagonist.isInvisible false
+        set Protagonist.Protagonist.isInvisible false
 
       ->"Stay up"
         ; wait a bit
