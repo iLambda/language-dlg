@@ -29,11 +29,9 @@ instruction ::=
                 | label const_id
                 | goto const_id
                 | nop
-              ; variable related
-                | set global|local const_id
-                | set [extern] extern_id
-                | ifnset global|local const_id
-                | ifnset [extern] extern_id
+              ; variable definitions
+                | set variable expr
+                | ifnset variable
               ; game program interactivity
                 | invoke extern_id ([expr{, expr}])
                 | send extern_id   [expr]
@@ -44,9 +42,7 @@ expr ::=
        ; a literal
          | literal
        ; a variable
-         | [local] const_id
-         | [global|#] const_id
-         | [extern] extern_id
+         | variable
        ; bracketing
          | (expr)
        ; a function call
@@ -56,6 +52,15 @@ expr ::=
 
 ; an infix operator
 infixop ::= + | - | * | / | && | || | = | != | <= | >= | < | >
+
+; a variable
+variable ::=
+          ; a local variable
+            | [local] const_id
+          ; a global variable
+            | [global|#] const_id
+          ; an extern variable
+            | [extern] extern_id
 
 
 ; a choice displayed

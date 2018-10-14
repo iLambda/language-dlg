@@ -109,30 +109,11 @@ instruction:
     { IGoto id }
 
   (** a set variable instruction for a script var**)
-  | KEYWORD_SET sc=located(scope_script) var=located(identifier_var) e=located(expr)
-    { ISet (sc, var, e) }
-  (** a set variable instruction for a runtime var (an object)**)
-  | KEYWORD_SET sc=located(option(scope_runtime)) var=located(identifier_obj) e=located(expr)
-    {
-      let pos = Position.position sc in
-      let s = match Position.value sc with
-        | None -> Position.with_pos pos SExtern
-        | Some sco -> Position.with_pos pos sco
-      in ISet (s, var, e)
-    }
-
+  | KEYWORD_SET var=located(extended_variable) e=located(expr)
+    { ISet (var, e) }
   (** a if not set variable instruction **)
-  | KEYWORD_IFNSET sc=located(scope_script) var=located(identifier_var) e=located(expr)
-    { IIfnset (sc, var, e) }
-  (** a ifnset variable instruction for a runtime var (an object)**)
-  | KEYWORD_IFNSET sc=located(option(scope_runtime)) var=located(identifier_obj) e=located(expr)
-    {
-      let pos = Position.position sc in
-      let s = match Position.value sc with
-        | None -> Position.with_pos pos SExtern
-        | Some sco -> Position.with_pos pos sco
-      in IIfnset (s, var, e)
-    }
+  | KEYWORD_IFNSET var=located(extended_variable) e=located(expr)
+    { IIfnset (var, e) }
 
   (** a wait instruction **)
   | KEYWORD_WAIT n=located(expr)
@@ -240,6 +221,14 @@ scope_runtime:
     { SExtern }
 
 (* Variable *)
+extended_variable:
+  | var=variable
+    { var }
+  | sc=scope_runtime id=identifier_obj
+    { (sc, id) }
+  | sc=scope_script id=identifier_var
+    { (sc, id) }
+
 variable:
   | sc=scope_runtime PUNCTUATION_COLON id=identifier_obj
     { (sc, id) }

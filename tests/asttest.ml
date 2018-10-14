@@ -28,8 +28,8 @@ let rec string_of_program program = match program with
 and string_of_instruction instr = match instr with
   | ILabel id -> "label " ^ (string_of_id (unlocate id))
   | IGoto id -> "goto " ^ (string_of_id (unlocate id))
-  | ISet (sc, id, expr) -> "set " ^ (string_of_scope (unlocate sc)) ^ " " ^ (string_of_id (unlocate id)) ^ " " ^ (string_of_expr (unlocate expr))
-  | IIfnset (sc, id, expr) -> "ifnset " ^ (string_of_scope (unlocate sc)) ^ " " ^ (string_of_id (unlocate id)) ^ " " ^ (string_of_expr (unlocate expr))
+  | ISet (var, expr) -> "set " ^ (string_of_variable (unlocate var)) ^ " " ^ (string_of_expr (unlocate expr))
+  | IIfnset (var, expr) -> "ifnset " ^ (string_of_variable (unlocate var)) ^ " " ^ (string_of_expr (unlocate expr))
   | IWait (evt, expr) -> let event = begin match evt with
       | Some ev -> (string_of_id (unlocate ev))
       | None -> "_"
@@ -86,11 +86,15 @@ and string_of_expr expr =
     (** A literal (const value) **)
     | ELiteral lit -> string_of_literal (unlocate lit)
     (** A variable **)
-    | EVar var -> let sc, id = unlocate var in "{" ^ (string_of_scope sc) ^ ":" ^ (string_of_id id) ^ "}"
+    | EVar var -> string_of_variable (unlocate var)
     (** An operation **)
     | EOperation (str, exprs) -> (unlocate str) ^ "(" ^ (print_args exprs) ^ ")"
     (** A function call **)
     | EFunc (id, args) -> (string_of_id (unlocate id)) ^ ":(" ^ (print_args (unlocate args)) ^ ")"
+
+and string_of_variable var =
+  let sc, id = var in
+  "{" ^ (string_of_scope sc) ^ ":" ^ (string_of_id id) ^ "}"
 
 and string_of_scope scope = match scope with
   | SGlobal -> "global"

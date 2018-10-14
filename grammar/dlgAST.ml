@@ -13,9 +13,9 @@ and instruction =
   (** A goto statement **)
   | IGoto of identifier located
   (** A set variable statement **)
-  | ISet of scope located * identifier located * expression located
+  | ISet of variable located * expression located
   (** A ifnset variable statement (if not set, do) **)
-  | IIfnset of scope located * identifier located * expression located
+  | IIfnset of variable located * expression located
   (** A wait n seconds statement **)
   | IWait of identifier located option * expression located
   (** A nop instruction (do nothing) **)
@@ -37,7 +37,7 @@ and expression =
   (** A literal (const value) **)
   | ELiteral of literal located
   (** A variable **)
-  | EVar of (scope * identifier) located
+  | EVar of variable located
   (** An operation **)
   | EOperation of string located * expression located list
   (** A function call **)
@@ -64,6 +64,8 @@ and literal =
   | LEnum of (identifier located) * (identifier located)
   | LVec2 of (expression located) * (expression located)
   | LVec3 of (expression located) * (expression located) * (expression located)
+
+and variable = scope * identifier
 
 and arglist = expression located list
 
