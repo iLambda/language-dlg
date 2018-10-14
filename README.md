@@ -57,9 +57,9 @@ infixop ::= + | - | * | / | && | || | = | != | <= | >= | < | >
 
 
 ; a choice displayed
-choice ::= >message INDENT program OUTDENT
+choice ::= ->message INDENT program OUTDENT
 ; a branch
-branch ::= >pattern INDENT program OUTDENT
+branch ::= ->pattern INDENT program OUTDENT
 ; a pattern
 pattern ::=
           ; a wildcard token
