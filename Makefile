@@ -1,13 +1,13 @@
 LEX = ocamllex
 YACC = menhir
 CC = ocamlfind ocamlopt
-CCFLAGS = -linkpkg -package sexplib,ppx_sexp_conv
+CCFLAGS = -linkpkg -package sexplib,ppx_sexp_conv,ANSITerminal
 
 all: clean edit
 
 edit:	build/dlgAST.cmx build/position.cmx build/error.cmx build/dlgLexer.cmx build/dlgParser.cmx
-				$(CC) -o build/dlglex.native -linkpkg -package sexplib,ppx_sexp_conv -I build/ build/position.cmx build/error.cmx build/dlgLexer.cmx tests/lextest.ml
-				$(CC) -o build/dlgast.native -linkpkg -package sexplib,ppx_sexp_conv -I build/ build/position.cmx build/error.cmx build/dlgAST.cmx build/dlgParser.cmx build/dlgLexer.cmx tests/asttest.ml
+				$(CC) -o build/dlglex.native $(CCFLAGS) -I build/ build/position.cmx build/error.cmx build/dlgLexer.cmx tests/lextest.ml
+				$(CC) -o build/dlgast.native $(CCFLAGS) -I build/ build/position.cmx build/error.cmx build/dlgAST.cmx build/dlgParser.cmx build/dlgLexer.cmx tests/asttest.ml
 				mv tests/*.cmi tests/*.cmx tests/*.o build/
 				mv build/dlglex.native bin/dlglex
 				mv build/dlgast.native bin/dlgast
@@ -15,7 +15,7 @@ edit:	build/dlgAST.cmx build/position.cmx build/error.cmx build/dlgLexer.cmx bui
 build/position.cmx:
 				$(CC) -c $(CCFLAGS) libs/position.ml -o build/position.cmx
 build/error.cmx: build/position.cmx
-				$(CC) -c $(CCFLAGS) -I build/ libs/error.ml -o build/error.cmx
+				$(CC) -c $(CCFLAGS) -linkpkg -package ANSITerminal -I build/ libs/error.ml -o build/error.cmx
 build/dlgAST.cmx: build/position.cmx
 				$(CC) -c $(CCFLAGS) -I build/ grammar/dlgAST.ml -o build/dlgAST.cmx
 build/dlgLexer.cmx: build/dlgLexer.ml build/dlgParser.cmx

@@ -141,14 +141,11 @@ let main () =
   if Array.length Sys.argv <> 2 then usage ();
   let c = open_in Sys.argv.(1) in
   let lb = from_channel c in
-  (* let p = Parser.program Lexer.main lb in *)
-  let string_of_pos p = (string_of_int p.pos_lnum) ^ ":" ^(string_of_int (p.pos_cnum - p.pos_bol))  in
   let ast = try DlgParser.program (DlgLexer.main false) lb
             with
-              |  Parsing.Parse_error -> failwith ("Syntax error at " ^ (string_of_pos (Lexing.lexeme_start_p lb) ^ " : " ^ (Lexing.lexeme lb)))
+              |  Parsing.Parse_error -> Error.print_syntax_error_at c lb; exit 0
             in
-  (* let exp = DlgAST.sexp_of_t ast in *)
-  let str = (*Sexplib.Sexp.to_string exp*) (string_of_program ast) ^ "\n" in
+  let str = (string_of_program ast) ^ "\n" in
   print_string str;
 
   close_in c
