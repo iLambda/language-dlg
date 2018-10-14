@@ -157,6 +157,7 @@ and token isinline = parse
 
   (* Operators *)
   | '?'             { OPERATOR_CHOICE }
+  | "->"            { OPERATOR_OPTION }
   | '"'
     {
       (* if we are inline, just send symbol*)

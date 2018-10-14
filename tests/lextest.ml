@@ -32,6 +32,7 @@ let print_tok = function
   | OPERATION_ISEQ s -> s
   | OPERATION_ISNEQ s -> s
   | OPERATION_GEQ s -> s
+  | OPERATOR_OPTION -> "->"
   | OPERATION_DIVIDE s -> s
   | OPERATION_AND s -> s
   | LITERAL_INT i -> Int32.to_string i
@@ -52,7 +53,7 @@ let print_tok = function
   | KEYWORD_LOCAL -> "SCOPE(local)"
   | KEYWORD_LABEL -> "label"
   | KEYWORD_IFNSET -> "ifnset"
-  | KEYWORD_THEN -> "then" 
+  | KEYWORD_THEN -> "then"
   | KEYWORD_SPEED -> "speed"
   | KEYWORD_GOTO -> "goto"
   | KEYWORD_GLOBAL -> "SCOPE(global)"

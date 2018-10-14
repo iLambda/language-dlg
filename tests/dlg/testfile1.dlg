@@ -5,11 +5,11 @@
 ;   1 : livingroom
 
 ? sintroprogress != 1
-  >true
+  ->true
     ; this part of the intro has been seen already. do whatever.
     nop
 
-  >false
+  ->false
     ; lock player movement
     set global lockControls true
 
@@ -32,7 +32,7 @@
     ; choice to sit or stay up
     label sitchoice
     ?
-      >"Sit"
+      ->"Sit"
         ; make player seated and clear tb
         "(Let's sit down.)"
         ""
@@ -76,17 +76,17 @@
         set extern Protagonist.CharacterController2D.lockControls false
         set extern Protagonist.Protagonist.isInvisible false
 
-      >"Stay up"
+      ->"Stay up"
         ; wait a bit
         speed 5%
         "..... " norush noack
         speed 100%
         ; give random answer
         ? rand() > 0.5
-          >true
+          ->true
             "Could you sit down please ?
             You're kinda stressing me out."
-          >false
+          ->false
             "Come on, sit with me !"
         ; go back to choice
         goto sitchoice
