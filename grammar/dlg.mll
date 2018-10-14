@@ -181,6 +181,7 @@ and token isinline = parse
   | '_'             { OPERATOR_WILDCARD }
 
   (* Operations *)
+  | "?="                 { OPERATION_TERNARY }
   | "+"                  { OPERATION_PLUS   (Lexing.lexeme lexbuf) }
   | "-"                  { OPERATION_MINUS  (Lexing.lexeme lexbuf) }
   | "*"                  { OPERATION_STAR   (Lexing.lexeme lexbuf) }

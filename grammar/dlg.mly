@@ -46,6 +46,7 @@
 %token OPERATOR_OPTION
 %token OPERATOR_WILDCARD
 %token OPERATOR_STRING
+%token OPERATION_TERNARY
 
 (* operation *)
 %token <string> OPERATION_PLUS
@@ -82,6 +83,7 @@
  *)
 
 (* the infix operators*)
+%right OPERATION_TERNARY PUNCTUATION_COLON
 %left OPERATION_AND OPERATION_OR
 %nonassoc OPERATION_ISEQ, OPERATION_ISNEQ, OPERATION_LEQ, OPERATION_GEQ, OPERATION_LESS, OPERATION_MORE
 %left OPERATION_PLUS, OPERATION_MINUS
@@ -178,7 +180,9 @@ expr:
     { e }
   | id=located(identifier_var) args=located(arg_list)
     { EFunc (id, args) }
-
+  (* ternary *)
+  | cond=located(expr) OPERATION_TERNARY a=located(expr) PUNCTUATION_COLON b=located(expr)
+    { ECondition (cond, a, b) }
   (* infix operators *)
   | lhs = located(expr) operator = located(OPERATION_PLUS) rhs = located(expr)
   | lhs = located(expr) operator = located(OPERATION_MINUS) rhs = located(expr)

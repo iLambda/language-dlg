@@ -40,6 +40,8 @@ and expression =
   | EVar of variable located
   (** An operation **)
   | EOperation of string located * expression located list
+  (** A ternary **)
+  | ECondition of expression located * expression located * expression located
   (** A function call **)
   | EFunc of identifier located * arglist located
 

@@ -91,6 +91,8 @@ and string_of_expr expr =
     | EOperation (str, exprs) -> (unlocate str) ^ "(" ^ (print_args exprs) ^ ")"
     (** A function call **)
     | EFunc (id, args) -> (string_of_id (unlocate id)) ^ ":(" ^ (print_args (unlocate args)) ^ ")"
+    (** A condition **)
+    | ECondition (cond, a, b) -> "if(" ^ (string_of_expr (unlocate cond)) ^ "){" ^ (string_of_expr (unlocate a)) ^ "}" ^ "{" ^ (string_of_expr (unlocate b)) ^ "}"
 
 and string_of_variable var =
   let sc, id = var in

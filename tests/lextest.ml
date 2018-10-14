@@ -61,8 +61,8 @@ let print_tok = function
   | ID_VAR s -> "VAR(" ^ s ^ ")"
   | ID_OBJECT s -> "OBJ(" ^ s ^ ")"
   | PUNCTUATION_HASH -> "#"
+  | OPERATION_TERNARY -> "?="
   | PUNCTUATION_COLON -> ":"
-
 
 let main () =
   if Array.length Sys.argv <> 2 then usage ();
