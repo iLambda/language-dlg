@@ -1,5 +1,6 @@
 {
   open Lexing
+  open DlgAST
   open DlgParser
   open Error
   open Position
@@ -156,6 +157,7 @@ and token isinline = parse
   | id_dlg_const as id  { ID_VAR id  }
 
   (* Operators *)
+  | "?="                 { OPERATOR_TERNARY }
   | '?'             { OPERATOR_CHOICE }
   | "->"            { OPERATOR_OPTION }
   | '"'
@@ -181,20 +183,19 @@ and token isinline = parse
   | '_'             { OPERATOR_WILDCARD }
 
   (* Operations *)
-  | "?="                 { OPERATION_TERNARY }
-  | "+"                  { OPERATION_PLUS   (Lexing.lexeme lexbuf) }
-  | "-"                  { OPERATION_MINUS  (Lexing.lexeme lexbuf) }
-  | "*"                  { OPERATION_STAR   (Lexing.lexeme lexbuf) }
-  | "/"                  { OPERATION_DIVIDE (Lexing.lexeme lexbuf) }
-  | "&&"                 { OPERATION_AND    (Lexing.lexeme lexbuf) }
-  | "||"                 { OPERATION_OR     (Lexing.lexeme lexbuf) }
-  | "=="                 { OPERATION_ISEQ   "=" }
-  | "="                 { OPERATION_ISEQ   (Lexing.lexeme lexbuf) }
-  | "!="                 { OPERATION_ISNEQ   (Lexing.lexeme lexbuf) }
-  | "<="                { OPERATION_LEQ    (Lexing.lexeme lexbuf) }
-  | ">="                { OPERATION_GEQ    (Lexing.lexeme lexbuf) }
-  | "<"                 { OPERATION_LESS   (Lexing.lexeme lexbuf) }
-  | ">"                 { OPERATION_MORE   (Lexing.lexeme lexbuf) }
+  | "+"                  { OPERATION_PLUS   OpPlus }
+  | "-"                  { OPERATION_MINUS  OpMinus }
+  | "*"                  { OPERATION_STAR   OpStar }
+  | "/"                  { OPERATION_DIVIDE OpDivide }
+  | "&&"                 { OPERATION_AND    OpAnd }
+  | "||"                 { OPERATION_OR     OpOr }
+  | "=="                 { OPERATION_ISEQ   OpEqual }
+  | "="                  { OPERATION_ISEQ   OpEqual }
+  | "!="                 { OPERATION_ISNEQ  OpNotEqual }
+  | "<="                 { OPERATION_LEQ    OpLeq }
+  | ">="                 { OPERATION_GEQ    OpGeq }
+  | "<"                  { OPERATION_LESS   OpLess }
+  | ">"                  { OPERATION_MORE   OpMore }
 
   (* Punctuation *)
   | '%'             { PUNCTUATION_PERCENT }

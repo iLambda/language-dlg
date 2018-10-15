@@ -39,7 +39,7 @@ and expression =
   (** A variable **)
   | EVar of variable located
   (** An operation **)
-  | EOperation of string located * expression located list
+  | EOperation of operation located * expression located * expression located(*expression located list*)
   (** A ternary **)
   | ECondition of expression located * expression located * expression located
   (** A function call **)
@@ -85,6 +85,20 @@ and fstringtok =
 
 and identifier =
   | Id of string
+
+and operation =
+  | OpPlus
+  | OpMinus
+  | OpStar
+  | OpDivide
+  | OpAnd
+  | OpOr
+  | OpEqual
+  | OpNotEqual
+  | OpLeq
+  | OpGeq
+  | OpLess
+  | OpMore
 
 and t = program
 [@@deriving sexp]

@@ -1,8 +1,23 @@
 open Lexing
 open DlgParser
+open DlgAST
 open Printf
 
 let usage () = eprintf "usage: dlg file\n"; exit 1
+
+let string_of_operation = function
+  | OpPlus -> "+"
+  | OpMinus -> "-"
+  | OpStar -> "*"
+  | OpDivide -> "/"
+  | OpAnd -> "&&"
+  | OpOr -> "||"
+  | OpEqual -> "=="
+  | OpNotEqual -> "!="
+  | OpLeq -> "<="
+  | OpGeq -> ">="
+  | OpLess -> "<"
+  | OpMore -> ">"
 
 let print_tok = function
   | EOF -> "EOF"
@@ -22,19 +37,19 @@ let print_tok = function
   | OPERATOR_MESSAGE -> "\""
   (* | OPERATOR_CHOICEOPTION -> "-" *)
   | OPERATOR_CHOICE -> "?"
-  | OPERATION_STAR s -> s
-  | OPERATION_PLUS s -> s
-  | OPERATION_OR s -> s
-  | OPERATION_MORE s -> s
-  | OPERATION_MINUS s -> s
-  | OPERATION_LESS s -> s
-  | OPERATION_LEQ s -> s
-  | OPERATION_ISEQ s -> s
-  | OPERATION_ISNEQ s -> s
-  | OPERATION_GEQ s -> s
+  | OPERATION_STAR s -> string_of_operation s
+  | OPERATION_PLUS s -> string_of_operation s
+  | OPERATION_OR s -> string_of_operation s
+  | OPERATION_MORE s -> string_of_operation s
+  | OPERATION_MINUS s -> string_of_operation s
+  | OPERATION_LESS s -> string_of_operation s
+  | OPERATION_LEQ s -> string_of_operation s
+  | OPERATION_ISEQ s -> string_of_operation s
+  | OPERATION_ISNEQ s -> string_of_operation s
+  | OPERATION_GEQ s -> string_of_operation s
   | OPERATOR_OPTION -> "->"
-  | OPERATION_DIVIDE s -> s
-  | OPERATION_AND s -> s
+  | OPERATION_DIVIDE s -> string_of_operation s
+  | OPERATION_AND s -> string_of_operation s
   | LITERAL_INT i -> Int32.to_string i
   | LITERAL_FLOAT f -> string_of_float f
   | LITERAL_BOOL b -> string_of_bool b
@@ -61,7 +76,7 @@ let print_tok = function
   | ID_VAR s -> "VAR(" ^ s ^ ")"
   | ID_OBJECT s -> "OBJ(" ^ s ^ ")"
   | PUNCTUATION_HASH -> "#"
-  | OPERATION_TERNARY -> "?="
+  | OPERATOR_TERNARY -> "?="
   | PUNCTUATION_COLON -> ":"
 
 let main () =

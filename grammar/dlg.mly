@@ -46,21 +46,21 @@
 %token OPERATOR_OPTION
 %token OPERATOR_WILDCARD
 %token OPERATOR_STRING
-%token OPERATION_TERNARY
+%token OPERATOR_TERNARY
 
 (* operation *)
-%token <string> OPERATION_PLUS
-%token <string> OPERATION_MINUS
-%token <string> OPERATION_STAR
-%token <string> OPERATION_DIVIDE
-%token <string> OPERATION_AND
-%token <string> OPERATION_OR
-%token <string> OPERATION_ISEQ
-%token <string> OPERATION_ISNEQ
-%token <string> OPERATION_LEQ
-%token <string> OPERATION_GEQ
-%token <string> OPERATION_LESS
-%token <string> OPERATION_MORE
+%token <DlgAST.operation> OPERATION_PLUS
+%token <DlgAST.operation> OPERATION_MINUS
+%token <DlgAST.operation> OPERATION_STAR
+%token <DlgAST.operation> OPERATION_DIVIDE
+%token <DlgAST.operation> OPERATION_AND
+%token <DlgAST.operation> OPERATION_OR
+%token <DlgAST.operation> OPERATION_ISEQ
+%token <DlgAST.operation> OPERATION_ISNEQ
+%token <DlgAST.operation> OPERATION_LEQ
+%token <DlgAST.operation> OPERATION_GEQ
+%token <DlgAST.operation> OPERATION_LESS
+%token <DlgAST.operation> OPERATION_MORE
 
 (* Message *)
 %token STRING_INLINE
@@ -83,7 +83,7 @@
  *)
 
 (* the infix operators*)
-%right OPERATION_TERNARY PUNCTUATION_COLON
+%right OPERATOR_TERNARY PUNCTUATION_COLON
 %left OPERATION_AND OPERATION_OR
 %nonassoc OPERATION_ISEQ, OPERATION_ISNEQ, OPERATION_LEQ, OPERATION_GEQ, OPERATION_LESS, OPERATION_MORE
 %left OPERATION_PLUS, OPERATION_MINUS
@@ -181,7 +181,7 @@ expr:
   | id=located(identifier_var) args=located(arg_list)
     { EFunc (id, args) }
   (* ternary *)
-  | cond=located(expr) OPERATION_TERNARY a=located(expr) PUNCTUATION_COLON b=located(expr)
+  | cond=located(expr) OPERATOR_TERNARY a=located(expr) PUNCTUATION_COLON b=located(expr)
     { ECondition (cond, a, b) }
   (* infix operators *)
   | lhs = located(expr) operator = located(OPERATION_PLUS) rhs = located(expr)
@@ -198,11 +198,13 @@ expr:
   | lhs = located(expr) operator = located(OPERATION_MORE) rhs = located(expr)
     {
       (* check if expression is already an operation *)
-      match Position.value rhs with
+      EOperation (operator, lhs, rhs)
+      (*match Position.value rhs with
         (* recompose arguments *)
         | EOperation (o, args) when (Position.value o) = (Position.value operator) -> EOperation (operator, lhs::args)
         (* create a new operation *)
         | _                                                                        -> EOperation (operator, [lhs; rhs])
+      *)
     }
 
 (* Argument list *)

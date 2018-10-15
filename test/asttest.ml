@@ -88,7 +88,7 @@ and string_of_expr expr =
     (** A variable **)
     | EVar var -> string_of_variable (unlocate var)
     (** An operation **)
-    | EOperation (str, exprs) -> (unlocate str) ^ "(" ^ (print_args exprs) ^ ")"
+    | EOperation (str, lhs, rhs) -> (string_of_operation (unlocate str)) ^ "(" ^ (string_of_expr (unlocate lhs)) ^ ", " ^ (string_of_expr (unlocate rhs)) ^ ")"
     (** A function call **)
     | EFunc (id, args) -> (string_of_id (unlocate id)) ^ ":(" ^ (print_args (unlocate args)) ^ ")"
     (** A condition **)
@@ -135,6 +135,20 @@ and string_of_fstring_tok tok = let out = match tok with
      | Some s -> "[#{" ^ s ^ "}]"
      end
     in "["^out^"]"
+
+and string_of_operation = function
+  | OpPlus -> "+"
+  | OpMinus -> "-"
+  | OpStar -> "*"
+  | OpDivide -> "/"
+  | OpAnd -> "&&"
+  | OpOr -> "||"
+  | OpEqual -> "=="
+  | OpNotEqual -> "!="
+  | OpLeq -> "<="
+  | OpGeq -> ">="
+  | OpLess -> "<"
+  | OpMore -> ">"
 
 and string_of_id id = match id with
   | Id s -> s
