@@ -93,6 +93,8 @@ and string_of_expr expr =
     | EFunc (id, args) -> (string_of_id (unlocate id)) ^ ":(" ^ (print_args (unlocate args)) ^ ")"
     (** A condition **)
     | ECondition (cond, a, b) -> "if(" ^ (string_of_expr (unlocate cond)) ^ "){" ^ (string_of_expr (unlocate a)) ^ "}" ^ "{" ^ (string_of_expr (unlocate b)) ^ "}"
+    (** Access to a type *)
+    | EAccess(vec, id) ->  (string_of_expr (unlocate vec)) ^ ".[" ^ (string_of_id (unlocate id)) ^ "]"
 
 and string_of_variable var =
   let sc, id = var in

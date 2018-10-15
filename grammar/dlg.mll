@@ -201,6 +201,9 @@ and token isinline = parse
   | '%'             { PUNCTUATION_PERCENT }
   | '('             { PUNCTUATION_LPAREN }
   | ')'             { PUNCTUATION_RPAREN }
+  | '['             { PUNCTUATION_LSQBRACKET }
+  | ']'             { PUNCTUATION_RSQBRACKET }
+  | '.'             { PUNCTUATION_DOT }
   | ','             { PUNCTUATION_COMMA }
   | ':'             { PUNCTUATION_COLON }
   | '#'             { PUNCTUATION_HASH }

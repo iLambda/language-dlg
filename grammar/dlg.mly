@@ -74,6 +74,9 @@
 %token PUNCTUATION_COMMA
 %token PUNCTUATION_COLON
 %token PUNCTUATION_HASH
+%token PUNCTUATION_LSQBRACKET
+%token PUNCTUATION_RSQBRACKET
+%token PUNCTUATION_DOT
 
 %start<DlgAST.t> program
 
@@ -88,6 +91,7 @@
 %nonassoc OPERATION_ISEQ, OPERATION_ISNEQ, OPERATION_LEQ, OPERATION_GEQ, OPERATION_LESS, OPERATION_MORE
 %left OPERATION_PLUS, OPERATION_MINUS
 %left OPERATION_DIVIDE OPERATION_STAR
+%nonassoc PUNCTUATION_DOT
 
 %%
 
@@ -183,6 +187,9 @@ expr:
   (* ternary *)
   | cond=located(expr) OPERATOR_TERNARY a=located(expr) PUNCTUATION_COLON b=located(expr)
     { ECondition (cond, a, b) }
+  (* access operator *)
+  | vec=located(expr) PUNCTUATION_DOT PUNCTUATION_LSQBRACKET coord=located(identifier_var) PUNCTUATION_RSQBRACKET
+    { EAccess (vec, coord) }
   (* infix operators *)
   | lhs = located(expr) operator = located(OPERATION_PLUS) rhs = located(expr)
   | lhs = located(expr) operator = located(OPERATION_MINUS) rhs = located(expr)

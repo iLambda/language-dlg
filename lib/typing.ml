@@ -369,6 +369,34 @@ let rec expr_type expr (runtime:typeenv) (branch:branchid) =
       end
     (** A function call has no expected type since it is always extern **)
     | EFunc (_, _) -> TCExpected None
+    (* Access to a constructed type *)
+    | EAccess (constr, id) ->
+      (* get the type of the constructed type *)
+      let constr_tc = (subexpr_type (unlocate constr)) in
+      (* get the string represented by id*)
+      let accessed = match (unlocate id) with Id s -> s in
+      (* match it *)
+      begin match type_assumed_from constr_tc with
+        (* No assumption. Work anyways, no info on type*)
+        | None -> TCExpected None
+        (* Assumption exists. Match the type const it assumes *)
+        | Some t -> begin match t with
+          (* A vector *)
+          | TVec2 ->
+            (* check if accessed is x or y. else , throw*)
+            if List.mem accessed ["x"; "y"] then least_type_container_of constr_tc constr_tc TFloat
+            else failwith ("Type error : accessed property '" ^ accessed ^ "' does not belong to type")
+          (* A vector *)
+          | TVec3 ->
+            (* check if accessed is x or y. else , throw*)
+            if List.mem accessed ["x"; "y"; "z"] then least_type_container_of constr_tc constr_tc TFloat
+            else failwith ("Type error : accessed property '" ^ accessed ^ "' does not belong to type")
+          (* Anything else fails *)
+          | _ -> failwith "Type error : accessed type is not a constructed type "
+
+        end
+      end
+
   in subexpr_type expr
 
 (* Checks the type of a fstring *)

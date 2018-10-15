@@ -44,6 +44,8 @@ and expression =
   | ECondition of expression located * expression located * expression located
   (** A function call **)
   | EFunc of identifier located * arglist located
+  (** Access to a constructed type **)
+  | EAccess of expression located * identifier located
 
 and pattern =
   (** A wildcard **)

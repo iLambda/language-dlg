@@ -78,6 +78,9 @@ let print_tok = function
   | PUNCTUATION_HASH -> "#"
   | OPERATOR_TERNARY -> "?="
   | PUNCTUATION_COLON -> ":"
+  | PUNCTUATION_DOT -> "."
+  | PUNCTUATION_LSQBRACKET -> "["
+  | PUNCTUATION_RSQBRACKET -> "]"
 
 let main () =
   if Array.length Sys.argv <> 2 then usage ();
