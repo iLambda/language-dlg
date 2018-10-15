@@ -259,7 +259,7 @@ let rec expr_type expr (runtime:typeenv) (branch:branchid) =
         (* it is not. check its scope *)
         | None -> begin match (unlocate var) with
             (* local it must be defined before *)
-            | SLocal, _ -> failwith "Type error : local variable was not defined before use"
+            | SLocal, id -> failwith ("Type error : local variable was not defined before use " ^ (match id with Id s -> s))
             (* not local. can't assume anything *)
             | _ -> TCExpected None
           end
@@ -470,7 +470,7 @@ let rec check_program_type p =
       (* a condition *)
       | ICondition (expr, branches) ->
         (* go through pattern *)
-        let rec check_pattern_type etype = function
+        let rec check_pattern_type etype b = function
           (* Wildcard. Always ok *)
           | PWildcard -> true
           (* A value. Okay iff the same type as etype *)
@@ -485,9 +485,11 @@ let rec check_program_type p =
             (* get a type declaration for identifier (always local) *)
             let idtype = type_env_get env (SLocal, unlocate id) branch in
             (* check if variable is already bound *)
-            if idtype <> None then failwith "Type error : identifier is already bound"
-            (* it wasn't. check if expr is boolean*)
-            else if not (type_container_is_type (expr_type (unlocate e) env branch) TBool)
+            if idtype <> None then failwith "Type error : identifier is already bound";
+            (* it wasn't. bind it *)
+            type_env_bind env (SLocal, unlocate id) b etype;
+            (* check if expr is boolean*)
+            if not (type_container_is_type (expr_type (unlocate e) env b) TBool)
             (* it's not *)
             then failwith "Type error : binding pattern condition must be a boolean"
             (* it is *)
@@ -500,13 +502,17 @@ let rec check_program_type p =
           (* check type of all expressions *)
           | (patt, prog)::tail ->
             (* check the pattern *)
-            (check_pattern_type etype (unlocate patt))
+            (check_pattern_type etype (branch_child branch i) (unlocate patt))
             (* check the subprogram *)
             && (check_subprogram_type (unlocate prog) env (branch_child branch i))
             (* check the next choice *)
             && (check_branches_type etype (i+1) tail)
         (* actually check *)
-        in check_branches_type (expr_type (unlocate expr) env branch) 0 branches
+        in
+        (* evaluate type of condition *)
+        let etype = (expr_type (unlocate expr) env branch)
+        (* check the type of the branches *)
+        in check_branches_type etype 0 branches
 
       (* a message *)
       | IMessage msg ->

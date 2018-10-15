@@ -152,10 +152,6 @@ and token isinline = parse
   | "vec3"                    { LITERAL_VEC3 }
   | "enum"                    { LITERAL_ENUM }
 
-  (* Identifiers *)
-  | id_dlg_object as id { ID_OBJECT id }
-  | id_dlg_const as id  { ID_VAR id  }
-
   (* Operators *)
   | "?="                 { OPERATOR_TERNARY }
   | '?'             { OPERATOR_CHOICE }
@@ -181,6 +177,10 @@ and token isinline = parse
         end
     }
   | '_'             { OPERATOR_WILDCARD }
+
+  (* Identifiers *)
+  | id_dlg_object as id { ID_OBJECT id }
+  | id_dlg_const as id  { ID_VAR id  }
 
   (* Operations *)
   | "+"                  { OPERATION_PLUS   OpPlus }
