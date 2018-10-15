@@ -342,54 +342,6 @@ let rec expr_type expr (runtime:typeenv) (branch:branchid) =
           | Some tc -> tc
         end
 
-    (* | EOperation (op, args) ->
-      (* return a list of the type containers of all the args*)
-      let rec type_containers_list l = begin match l with
-        (* empty, shouldn't be. error *)
-        | [] -> []
-        (* a longer list. check *)
-        | e::tail -> (subexpr_type (unlocate e))::(type_containers_list tail)
-      end in
-      (* the type checking accumualator for fold *)
-      let arg_type_check types argtypes =
-        let arg_type_check_acc modeltypes acctype curtype =
-          (* check accumulator assumed type*)
-          begin match type_assumed_from acctype with
-            (* no assumption made. type is current *)
-            | None -> curtype
-            (* accumulator represents a type. check if valid *)
-            | Some t ->
-              (* if belongs in the list of authorized types *)
-              if (if modeltypes = [] then true else List.mem t modeltypes)
-              (* try get the least type container *)
-              then begin match least_type_container acctype curtype with
-                (* it failed; types are not compatible. Throw an error *)
-                | None -> failwith "Type error : operator arguments are not compatible"
-                (* did not fail : types are compatible. return the least type container *)
-                | Some ltc -> ltc
-              end
-              else failwith "Type error : operator does not support given type"
-          end in
-        List.fold_left (arg_type_check_acc types) (TCExpected None) argtypes
-      in
-      (* get the type containers of the list of arguments*)
-      let argtypes = type_containers_list args in
-      (* match operators *)
-      begin match unlocate op with
-        | OpPlus -> arg_type_check [TInt; TFloat; TString; TVec2; TVec3] argtypes
-        | OpMinus -> arg_type_check [TInt; TFloat; TVec2; TVec3] argtypes
-        | OpStar -> arg_type_check [TInt; TFloat] argtypes
-        | OpDivide -> arg_type_check [TInt; TFloat] argtypes
-        | OpAnd -> arg_type_check [TBool] argtypes
-        | OpOr -> arg_type_check [TBool] argtypes
-        | OpEqual -> arg_type_check [] argtypes
-        | OpNotEqual -> arg_type_check [] argtypes
-        | OpLeq -> arg_type_check [TInt; TFloat; TString; TVec2; TVec3] argtypes
-        | OpGeq -> arg_type_check [TInt; TFloat] argtypes
-        | OpLess -> arg_type_check [TInt; TFloat] argtypes
-        | OpMore -> arg_type_check [TInt; TFloat] argtypes
-      end *)
-
     (** A ternary **)
     | ECondition (cond, thendo, elsedo) ->
       (* check if condition type is bool *)
