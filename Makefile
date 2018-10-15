@@ -5,17 +5,21 @@ CCFLAGS = -linkpkg -package sexplib,ppx_sexp_conv,ANSITerminal
 
 all: clean edit
 
-edit:	build/dlgAST.cmx build/position.cmx build/error.cmx build/dlgLexer.cmx build/dlgParser.cmx
-				$(CC) -o build/dlglex.native $(CCFLAGS) -I build/ build/position.cmx build/error.cmx build/dlgLexer.cmx test/lextest.ml
-				$(CC) -o build/dlgast.native $(CCFLAGS) -I build/ build/position.cmx build/error.cmx build/dlgAST.cmx build/dlgParser.cmx build/dlgLexer.cmx test/asttest.ml
+edit:	build/dlgAST.cmx build/position.cmx build/typing.cmx build/error.cmx build/dlgLexer.cmx build/dlgParser.cmx
+				$(CC) -o build/dlglex.native $(CCFLAGS) -I build/ build/position.cmx build/typing.cmx build/error.cmx build/dlgLexer.cmx test/lextest.ml
+				$(CC) -o build/dlgast.native $(CCFLAGS) -I build/ build/position.cmx build/typing.cmx build/error.cmx build/dlgAST.cmx build/dlgParser.cmx build/dlgLexer.cmx test/asttest.ml
+				$(CC) -o build/dlgtype.native $(CCFLAGS) -I build/ build/position.cmx build/typing.cmx build/error.cmx build/dlgAST.cmx build/dlgParser.cmx build/dlgLexer.cmx test/typetest.ml
 				mv test/*.cmi test/*.cmx test/*.o build/
 				mv build/dlglex.native bin/dlglex
 				mv build/dlgast.native bin/dlgast
+				mv build/dlgtype.native bin/dlgtype
 
 build/position.cmx:
 				$(CC) -c $(CCFLAGS) lib/position.ml -o build/position.cmx
+build/typing.cmx:
+				$(CC) -c $(CCFLAGS) -I build/ lib/typing.ml -o build/typing.cmx
 build/error.cmx: build/position.cmx
-				$(CC) -c $(CCFLAGS) -linkpkg -package ANSITerminal -I build/ lib/error.ml -o build/error.cmx
+				$(CC) -c $(CCFLAGS) -I build/ lib/error.ml -o build/error.cmx
 build/dlgAST.cmx: build/position.cmx
 				$(CC) -c $(CCFLAGS) -I build/ grammar/dlgAST.ml -o build/dlgAST.cmx
 build/dlgLexer.cmx: build/dlgLexer.ml build/dlgParser.cmx
