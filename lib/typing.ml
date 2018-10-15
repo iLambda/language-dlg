@@ -1,6 +1,10 @@
 open Position
 open DlgAST
 
+(*
+* TYPING SYSTEM TYPES
+*)
+(* A constant type *)
 type typeconst =
   | TInt
   | TFloat
@@ -11,18 +15,18 @@ type typeconst =
   | TVec3
   | TAll
 
+(* A type container, representing an expectation of some constant type *)
 type typecontainer =
   | TCActual of typeconst
   | TCExpected of typeconst option
 
+(* A branch in the program *)
 type branchid = int list
-
-type typeenvflat = (variable, typecontainer) Hashtbl.t
+(* A type environment containing all type declarations for variables in a given branch *)
 type typeenv = (variable, (branchid * typecontainer) list) Hashtbl.t
 
 (*
-how do we define a type associated to a variable
-that could be modified by our program ? we can't keep track of such a type
+*  TYPE CONSTANTS HELPERS
 *)
 
 (* Returns the type of a given literal *)
@@ -52,30 +56,26 @@ let float_of_located_number n = float_of_number (Position.value n)
 (*
   BRANCH HELPERS
 *)
+(* Returns true iff the base is a prefix on the branch (see tree lexicographic order) *)
 let rec branch_is_previous (base : branchid) (branch : branchid) = match base, branch with
   | [], [] -> true
   | [], _ -> true
   | _, [] -> false
   | h1::t1, h2::t2 -> h1 == h2 && branch_is_previous t1 t2
-
+(* Retuns the depth at which the two branches start to diverge *)
 let rec branch_common_depth (base : branchid) (branch : branchid) = match base, branch with
   | [], [] -> 0
   | [], _ -> 0
   | _, [] -> 0
   | h1::t1, h2::t2 -> if h1 == h2 then (1 + branch_common_depth t1 t2) else 0
-
+(* Expand a branch, exploring the ith choice after it *)
 let branch_child branch i =
   branch @ [i]
 
 (*
   TYPE ENVIRONMENT HELPER FUNCTIONS
 *)
-(* let type_environment_get (env : typeenvflat) var =
-  Hashtbl.find_opt env var
-
-let type_environment_bind (env : typeenvflat) var tc =
-  Hashtbl.add env var tc *)
-
+(* Returns the an option containing the type container definition for the variable at a given branch *)
 let type_env_get (env : typeenv) var (b : branchid) =
   (* try find branch*)
   match Hashtbl.find_opt env var with
@@ -107,6 +107,7 @@ let type_env_get (env : typeenv) var (b : branchid) =
       (* actually find the max branch*)
       in find_max_branch d b (-1) None
 
+(* Sets the type container definition for a variable at a given branch *)
 let type_env_bind (env : typeenv) var (branch : branchid) tc =
   (* try find branch*)
   match Hashtbl.find_opt env var with
@@ -124,8 +125,6 @@ let type_env_bind (env : typeenv) var (branch : branchid) tc =
       (* actually do it *)
       in Hashtbl.add env var (replace_branch d)
 
-
-
 (*
   TYPE CHECKING METHODS
 *)
@@ -134,11 +133,16 @@ type type_error =
       position: Position.position
     }
 
+(*
+* TYPE CONTAINERS HELPERS
+*)
+(* Returns true if the two type constants are the same *)
 let type_is_same t0 t1 = match t0, t1 with
   | TAll, t -> true
   | t, TAll -> true
   | _, _ -> t0 = t1
 
+(* Returns an option representing the type constant assumed to be produced by the type container *)
 let type_assumed_from tc = match tc with
   | TCActual t -> Some t
   | TCExpected expectation -> begin match expectation with
@@ -146,7 +150,7 @@ let type_assumed_from tc = match tc with
     | Some t -> Some t
     end
 
-
+(* Returns true iff the type container represents a type constant t0 *)
 let type_container_is_type tc t0 = match tc with
   | TCActual t -> type_is_same t t0
   | TCExpected expectation -> begin match expectation with
@@ -154,10 +158,12 @@ let type_container_is_type tc t0 = match tc with
     | Some t -> type_is_same t t0
     end
 
+(* Returns true iff the type container represents a number *)
 let type_container_is_number tc =
   (type_container_is_type tc TInt)
   || (type_container_is_type tc TFloat)
 
+(* Returns true iff the type containers are compatible *)
 let type_container_is_same tc1 tc2 = match tc1, tc2 with
   (* actual types. check equality *)
   | TCActual t0, TCActual t1 -> type_is_same t0 t1
@@ -167,6 +173,7 @@ let type_container_is_same tc1 tc2 = match tc1, tc2 with
   (* in the other cases, we have a null expectation somewhere. give in*)
   | _ -> true
 
+(* Returns the type container carrying the most expectation info about tc1(t) AND tc2(t) representing t *)
 let least_type_container tc1 tc2 =
   (* if they are not representing the same type *)
   if not (type_container_is_same tc1 tc2) then None
@@ -183,17 +190,22 @@ let least_type_container tc1 tc2 =
     (* in the other case, we have two null expectations. can't say more*)
     | TCExpected None, TCExpected None -> Some (TCExpected None)
 
-let least_assumption_container_of tc1 tc2 t = match tc1, tc2 with
-    (* no assumption made in some container. can't make more assumption *)
-    | TCExpected None, _ -> TCExpected None
-    | _, TCExpected None -> TCExpected None
-    (* if we have a typed expectation or an actual type, return an expectation *)
-    | TCExpected (Some _), _ -> TCExpected (Some t)
-    | _, TCExpected (Some _) -> TCExpected (Some t)
+(* Returns the type container carrying the most expectation info about tc1 AND tc2, but representing a different const type t *)
+let least_type_container_of tc1 tc2 t = match tc1, tc2 with
     (* actual types. return an actual type *)
     | TCActual _, TCActual _ -> TCActual t
+    (* if we have a typed expectation or an actual type, return an expectation *)
+    | TCActual _, TCExpected _ -> TCExpected (Some t)
+    | TCExpected _, TCActual _ -> TCExpected (Some t)
+    | TCExpected (Some _), _ -> TCExpected (Some t)
+    | _, TCExpected (Some _) -> TCExpected (Some t)
 
+    (* in the other case, we have two null expectations. can't say more*)
+    | TCExpected None, TCExpected None -> TCExpected None
 
+(*
+* TYPE CHECKER METHODS
+*)
 
 (* Returns the type of an expression given a branch *)
 let rec expr_type expr (runtime:typeenv) (branch:branchid) =
@@ -268,7 +280,7 @@ let rec expr_type expr (runtime:typeenv) (branch:branchid) =
           (* If rules matches *)
           if (type_container_is_type tcl l) && (type_container_is_type tcr r)
           (* Return the output type, with as less assumption as possible *)
-          then Some (least_assumption_container_of tcl tcr ret)
+          then Some (least_type_container_of tcl tcr ret)
           (* Did not match. Try the next rule *)
           else resolve_args_type t tcl tcr
         end in
