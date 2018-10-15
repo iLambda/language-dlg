@@ -4,7 +4,7 @@
 ;   0 : wakeup
 ;   1 : livingroom
 
-? sintroprogress != 1
+? #sintroprogress != 1
   ->true
     ; this part of the intro has been seen already. do whatever.
     nop
