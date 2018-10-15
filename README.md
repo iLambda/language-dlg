@@ -47,7 +47,7 @@ instruction ::=
                 | ifnset variable
               ; game program interactivity
                 | invoke extern_id ([expr{, expr}])
-                | send extern_id   [expr]
+                | send extern_id [expr]
                 | wait const_id then expr
 
 ; an expression
@@ -64,6 +64,8 @@ expr ::=
          | expr infixop expr
        ; a ternary condiction
          | expr ?= expr : expr
+       ; an access over a constructed type
+         | expr.[const_id]
 
 ; an infix operator
 infixop ::= + | - | * | / | && | || | = | != | <= | >= | < | >
