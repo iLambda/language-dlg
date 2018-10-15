@@ -129,9 +129,9 @@ let type_env_bind (env : typeenv) var (branch : branchid) tc =
   TYPE CHECKING METHODS
 *)
 type type_error =
-    {
-      position: Position.position
-    }
+{
+  position: Position.position
+}
 
 (*
 * TYPE CONTAINERS HELPERS
