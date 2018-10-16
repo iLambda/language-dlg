@@ -38,6 +38,8 @@
 %token TYPE_VEC2
 %token TYPE_VEC3
 %token TYPE_ENUM
+%token TYPE_VOID
+
 (* Literals *)
 %token<bool> LITERAL_BOOL
 %token<int32> LITERAL_INT
@@ -166,6 +168,11 @@ instruction:
       let var = Position.with_pos (Position.position id) (SExtern, (Position.value id)) in
       IDeclare (var, t, args)
     }
+  | KEYWORD_DECLARE KEYWORD_EXTERN id=located(identifier_var) t=located(type_const) args=option(type_list)
+    {
+      let var = Position.with_pos (Position.position id) (SExtern, (Position.value id)) in
+      IDeclare (var, t, args)
+    }
 
 (** a possible choice **)
 choice:
@@ -286,6 +293,8 @@ type_list:
     { args }
 
 type_const:
+  | TYPE_VOID
+    { TVoid }
   | TYPE_INT
     { TInt }
   | TYPE_BOOL

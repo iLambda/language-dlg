@@ -89,6 +89,7 @@ and string_of_type t = match t with
   | TVec2 -> "vec2"
   | TVec3 -> "vec3"
   | TAll -> assert false
+  | TVoid -> "void"
 
 and string_of_typelist tl =
   let rec string_of_typelist_args = function

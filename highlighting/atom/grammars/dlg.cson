@@ -85,7 +85,7 @@ patterns: [ # An array of individual pattern declarations.
     name: 'keyword.operator.dlg'
   },
   {
-    match: '\\b(int|float|bool|string|enum|vec2|vec3)\\b'
+    match: '\\b(int|float|bool|string|enum|vec2|vec3|void)\\b'
     name: 'support.type.dlg'
   },
   {

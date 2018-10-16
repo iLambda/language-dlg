@@ -134,6 +134,7 @@ and token isinline = parse
   | "vec2"           { TYPE_VEC2 }
   | "vec3"           { TYPE_VEC3 }
   | "enum"           { TYPE_ENUM }
+  | "void"           { TYPE_VOID }
 
   (* Keywords *)
   | "declare"          { KEYWORD_DECLARE }

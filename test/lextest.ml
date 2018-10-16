@@ -60,6 +60,7 @@ let print_tok = function
   | TYPE_ENUM -> "enum"
   | TYPE_VEC2 -> "vec2"
   | TYPE_VEC3 -> "vec3"
+  | TYPE_VOID -> "vec3"
   | KEYWORD_WHEN -> "when"
   | KEYWORD_WAIT -> "wait"
   | KEYWORD_SET -> "set"

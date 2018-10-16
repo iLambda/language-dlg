@@ -13,6 +13,8 @@ type typeconst =
   | TVec2
   | TVec3
   | TAll
+  | TVoid
+
 [@@deriving sexp]
 
 (** A program is a list of definitions. *)
@@ -83,6 +85,7 @@ and literal =
   | LVec2 of (expression located) * (expression located)
   | LVec3 of (expression located) * (expression located) * (expression located)
 
+(* rename to scoped_identifier since it includes func declarations now ?*)
 and variable = scope * identifier
 
 and arglist = expression located list
