@@ -28,14 +28,20 @@
 %token KEYWORD_INVOKE
 %token KEYWORD_SPEED
 %token KEYWORD_THEN
+%token KEYWORD_DECLARE
 
+(* Types *)
+%token TYPE_INT
+%token TYPE_FLOAT
+%token TYPE_BOOL
+%token TYPE_STRING
+%token TYPE_VEC2
+%token TYPE_VEC3
+%token TYPE_ENUM
 (* Literals *)
 %token<bool> LITERAL_BOOL
 %token<int32> LITERAL_INT
 %token<float> LITERAL_FLOAT
-%token LITERAL_VEC2
-%token LITERAL_VEC3
-%token LITERAL_ENUM
 (* Identifiers *)
 %token<string> ID_OBJECT
 %token<string> ID_VAR
@@ -148,7 +154,18 @@ instruction:
   (** a send command **)
   | KEYWORD_SEND id=located(identifier_obj) arg=option(located(expr))
     { ISend (id, arg) }
-
+  (** a declare type command for global type **)
+  | KEYWORD_DECLARE KEYWORD_GLOBAL id=located(identifier_var) t=located(type_const)
+    {
+      let var = Position.with_pos (Position.position id) (SGlobal, (Position.value id)) in
+      IDeclare (var, t, None)
+    }
+  (** a declare type command for global type **)
+  | KEYWORD_DECLARE KEYWORD_EXTERN id=located(identifier_obj) t=located(type_const) args=option(type_list)
+    {
+      let var = Position.with_pos (Position.position id) (SExtern, (Position.value id)) in
+      IDeclare (var, t, args)
+    }
 
 (** a possible choice **)
 choice:
@@ -263,21 +280,42 @@ identifier_obj:
   | id = ID_OBJECT
     { Id id }
 
+(* types *)
+type_list:
+  | args=delimited(PUNCTUATION_LPAREN, separated_list(PUNCTUATION_COMMA, located(type_const)), PUNCTUATION_RPAREN)
+    { args }
+
+type_const:
+  | TYPE_INT
+    { TInt }
+  | TYPE_BOOL
+    { TBool }
+  | TYPE_FLOAT
+    { TFloat }
+  | TYPE_STRING
+    { TString }
+  | TYPE_VEC2
+    { TVec2 }
+  | TYPE_VEC3
+    { TVec3 }
+  | TYPE_ENUM PUNCTUATION_LPAREN t=identifier_var PUNCTUATION_RPAREN
+    { TEnum (match t with Id s -> s) }
+
 (* Literals *)
 literal:
   | b = LITERAL_BOOL { LBool b }
   | n = number       { n }
   | OPERATOR_STRING str=option(stringcontents) OPERATOR_STRING
     { LString (match str with | None -> [] | Some l -> l) }
-  | LITERAL_VEC2 PUNCTUATION_LPAREN x=located(expr) PUNCTUATION_COMMA y=located(expr) PUNCTUATION_RPAREN
+  | TYPE_VEC2 PUNCTUATION_LPAREN x=located(expr) PUNCTUATION_COMMA y=located(expr) PUNCTUATION_RPAREN
     {
       LVec2 (x, y)
     }
-  | LITERAL_VEC3 PUNCTUATION_LPAREN x=located(expr) PUNCTUATION_COMMA y=located(expr) PUNCTUATION_COMMA z=located(expr) PUNCTUATION_RPAREN
+  | TYPE_VEC3 PUNCTUATION_LPAREN x=located(expr) PUNCTUATION_COMMA y=located(expr) PUNCTUATION_COMMA z=located(expr) PUNCTUATION_RPAREN
     {
       LVec3 (x, y, z)
     }
-  | LITERAL_ENUM PUNCTUATION_LPAREN t=located(identifier_var) PUNCTUATION_COMMA value=located(identifier_var) PUNCTUATION_RPAREN
+  | TYPE_ENUM PUNCTUATION_LPAREN t=located(identifier_var) PUNCTUATION_COMMA value=located(identifier_var) PUNCTUATION_RPAREN
     {
       LEnum (t, value)
     }

@@ -4,16 +4,6 @@ open DlgAST
 (*
 * TYPING SYSTEM TYPES
 *)
-(* A constant type *)
-type typeconst =
-  | TInt
-  | TFloat
-  | TBool
-  | TString
-  | TEnum of string
-  | TVec2
-  | TVec3
-  | TAll
 
 (* A type container, representing an expectation of some constant type *)
 type typecontainer =
@@ -22,7 +12,7 @@ type typecontainer =
 
 (* A branch in the program *)
 type branchid = int list
-(* A type environment containing all type declarations for variables in a given branch *)
+(* A type environment containing all type declarations for variables&funcs in a given branch *)
 type typeenv = (variable, (branchid * typecontainer) list) Hashtbl.t
 
 (*
@@ -313,6 +303,9 @@ let rec expr_type expr (runtime:typeenv) (branch:branchid) =
               TInt, TFloat, TFloat;
               TFloat, TInt, TFloat;
               make_id_tuple TFloat;
+              (* string *)
+              TInt, TString, TString;
+              TString, TInt, TString;
               (* vector 3 *)
               TVec2, TInt, TVec2;
               TInt, TVec2, TVec2;
@@ -549,6 +542,28 @@ let rec check_program_type p =
           (* verify if underlying fstring is ok *)
           if check_fstring_type env branch fstr then true
           else failwith "Type error : message has unsound inline tokens"
+
+      (* A declare type *)
+      | IDeclare (var, ret, args) ->
+        (* check if args is none*)
+        begin match args with
+        (* it's none. we got a variable*)
+        | None ->
+        (* check if variable was already bound in the typeenv where we are *)
+        (** BIND GLOBALLY OR LOCALLY ? branch or [] ? **)
+          begin match type_env_get env (unlocate var) branch with
+            (* not bound. do bind. this line is valid *)
+            | None -> type_env_bind env (unlocate var) branch (TCActual (unlocate ret)); true
+            (* bound. check if valid *)
+            | Some tc ->
+              let isvalid = type_container_is_type tc (unlocate ret) in
+              if not isvalid then failwith "Type error: variable was declared two times with different types";
+              (* else throw warning *)
+              isvalid
+          end
+        (* it's not none. we got a func*)
+        | Some _ -> failwith "UNIMPLEMENTED"
+        end
 
       | _ -> true
     in

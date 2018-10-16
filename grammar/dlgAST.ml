@@ -3,6 +3,18 @@
 open Sexplib.Std
 open Position
 
+(* A constant type *)
+type typeconst =
+  | TInt
+  | TFloat
+  | TBool
+  | TString
+  | TEnum of string
+  | TVec2
+  | TVec3
+  | TAll
+[@@deriving sexp]
+
 (** A program is a list of definitions. *)
 type program = instruction located list
 (* [@@deriving sexp] *)
@@ -32,6 +44,8 @@ and instruction =
   | ISpeed of expression located
   (** A send command **)
   | ISend of identifier located * (expression located option)
+  (** A declare command **)
+  | IDeclare of variable located * typeconst located * typearglist option
 
 and expression =
   (** A literal (const value) **)
@@ -72,6 +86,7 @@ and literal =
 and variable = scope * identifier
 
 and arglist = expression located list
+and typearglist = typeconst located list
 
 and message = fstring * messageopt located list
 and messageopt =

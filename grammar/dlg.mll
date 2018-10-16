@@ -126,7 +126,17 @@ and token isinline = parse
       incrproduce true lexbuf
     }
 
+  (*Types*)
+  | "int"            { TYPE_INT }
+  | "float"          { TYPE_FLOAT }
+  | "bool"           { TYPE_BOOL }
+  | "string"         { TYPE_STRING }
+  | "vec2"           { TYPE_VEC2 }
+  | "vec3"           { TYPE_VEC3 }
+  | "enum"           { TYPE_ENUM }
+
   (* Keywords *)
+  | "declare"          { KEYWORD_DECLARE }
   | "label"          { KEYWORD_LABEL }
   | "goto"           { KEYWORD_GOTO }
   | "set"            { KEYWORD_SET }
@@ -148,9 +158,6 @@ and token isinline = parse
   | ("true"|"false") as s     { LITERAL_BOOL (bool_of_string s ) }
   | lit_integer as s          { LITERAL_INT (Int32.of_string s) }
   | lit_float as s            { LITERAL_FLOAT (float_of_string s)}
-  | "vec2"                    { LITERAL_VEC2 }
-  | "vec3"                    { LITERAL_VEC3 }
-  | "enum"                    { LITERAL_ENUM }
 
   (* Operators *)
   | "?="                 { OPERATOR_TERNARY }

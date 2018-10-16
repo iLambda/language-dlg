@@ -71,6 +71,30 @@ and string_of_instruction instr = match instr with
       | None -> "_"
       | Some x -> string_of_expr (unlocate x)
     in "send " ^ (string_of_id (unlocate id)) ^ " " ^ argstr
+  | IDeclare (var, t, args) ->
+    let varstr = string_of_variable (unlocate var) in
+    let tstr = string_of_type (unlocate t) in
+    let argsstr = begin match args with
+      | None -> ""
+      | Some a -> string_of_typelist a
+    end in
+    "declare " ^ varstr ^ " " ^ tstr ^ " " ^ argsstr
+
+and string_of_type t = match t with
+  | TInt -> "int"
+  | TFloat -> "float"
+  | TBool -> "bool"
+  | TString -> "string"
+  | TEnum s -> "enum(" ^ s ^ ")"
+  | TVec2 -> "vec2"
+  | TVec3 -> "vec3"
+  | TAll -> assert false
+
+and string_of_typelist tl =
+  let rec string_of_typelist_args = function
+    | [] -> ""
+    | t::h -> (string_of_type (unlocate t)) ^ "; " ^ (string_of_typelist_args h)
+  in "(" ^ (string_of_typelist_args tl) ^ ")"
 
 and string_of_pattern p = match p with
   | PWildcard -> "_"

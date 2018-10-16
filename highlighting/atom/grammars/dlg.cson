@@ -12,7 +12,7 @@ foldingStartMarker: '' # A regular expression that checks for the start of a fol
 foldingStopMarker: '' # A regular expression that checks for the end of a foldable area (such as `}`). If both folding markers are matched in the same line, there will be no foldable area.
 patterns: [ # An array of individual pattern declarations.
   {
-    match: ' *\\b(label|goto|set|ifnset|global|extern|local|wait|nop|when|norush|noack|invoke|send|speed|then)\\b'
+    match: ' *\\b(label|goto|set|ifnset|global|extern|local|wait|nop|when|norush|noack|invoke|send|speed|then|declare)\\b'
     name: 'keyword.control.query.dlg'
   },
   {
@@ -85,15 +85,12 @@ patterns: [ # An array of individual pattern declarations.
     name: 'keyword.operator.dlg'
   },
   {
-    match: '\\b(true|false)\\b'
-    name: 'constant.language.boolean.dlg'
+    match: '\\b(int|float|bool|string|enum|vec2|vec3)\\b'
+    name: 'support.type.dlg'
   },
   {
-    match: '\\b(vec[23]|enum)\\('
-    name: 'entity.other.send.dlg'
-    captures:
-      1:
-        name: 'support.type.dlg'
+    match: '\\b(true|false)\\b'
+    name: 'constant.language.boolean.dlg'
   }
 ]
 repository: # An array of rules. If you're going to be referencing one bit of code over and over again, stick it here so that you can edit all in one place.

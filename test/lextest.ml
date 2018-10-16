@@ -53,9 +53,13 @@ let print_tok = function
   | LITERAL_INT i -> Int32.to_string i
   | LITERAL_FLOAT f -> string_of_float f
   | LITERAL_BOOL b -> string_of_bool b
-  | LITERAL_ENUM -> "enum"
-  | LITERAL_VEC2 -> "vec2"
-  | LITERAL_VEC3 -> "vec3"
+  | TYPE_INT -> "int"
+  | TYPE_FLOAT -> "float"
+  | TYPE_BOOL -> "bool"
+  | TYPE_STRING -> "string"
+  | TYPE_ENUM -> "enum"
+  | TYPE_VEC2 -> "vec2"
+  | TYPE_VEC3 -> "vec3"
   | KEYWORD_WHEN -> "when"
   | KEYWORD_WAIT -> "wait"
   | KEYWORD_SET -> "set"
@@ -70,6 +74,7 @@ let print_tok = function
   | KEYWORD_IFNSET -> "ifnset"
   | KEYWORD_THEN -> "then"
   | KEYWORD_SPEED -> "speed"
+  | KEYWORD_DECLARE -> "declare"
   | KEYWORD_GOTO -> "goto"
   | KEYWORD_GLOBAL -> "SCOPE(global)"
   | INDENT -> "INDENT"

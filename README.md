@@ -19,9 +19,11 @@ $$ opam install menhir sexplib ppx_sexp_conv ANSITerminal
 
 ## DLG language
 
-### Semantics
+### Syntax
 
-### Syntax & grammar
+
+
+### Grammar & tokens
 
 The grammar for the DLG language implemented in the compiler in is the following :
 
@@ -159,8 +161,20 @@ This ensures a few things :
 
 Whenever an expression is left unchecked by the static compiler, it will be typed by the dynamic type checking system at runtime to ensure type correctness. The data computed by the static compiler will be transferred to the dynamic type compiler to avoid recomputations.
 
+In order to assert that a global variable or an extern symbol (a function, a variable, ..) is of a given type, you can use the following instruction to tell the compiler the type of the symbol.
+```dlg
+declare extern My.extern.variable type
+declare extern My.extern.function type (arg1 arg2 arg3)
+
+declare global myvariable type
+```
+
 ### Dynamic type checking
 
 
 
-## DLG bytecode
+## Bytecode
+
+## Interpreter
+
+The **interpreter** is an interface in a given programming language that implements all semantic functions of the language and a bytecode interpreter, which allows a programmer to virtually run the DLG language everywhere.
