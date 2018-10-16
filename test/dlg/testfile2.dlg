@@ -1,0 +1,17 @@
+declare extern Protagonist.Protagonist.isVisible enum(ldl)
+declare extern rand float ()
+declare extern Protagonist.Protagonist.something void (int, string)
+
+invoke Protagonist.Protagonist.something (3, 'ah')
+
+set i rand() + 1
+set m vec3(1, 2, 0)
+set n m+vec3(0, 0, 0)
+? m
+  -> vec3(0, 0, 0)
+    nop
+  -> v when v.[z] * v.[z] = 2
+    set n n
+    nop
+  -> _
+    nop
