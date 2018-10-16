@@ -6,7 +6,7 @@ DLG is a scripting language bundled with expression evaluation & code interactiv
 
 ## Building
 
-This project depends on the following modules !
+This project depends on the following modules :
   * menhir
   * sexplib
   * ppx_sexp_conv
@@ -51,6 +51,9 @@ instruction ::=
                 | invoke extern_id ([expr{, expr}])
                 | send extern_id [expr]
                 | wait const_id then expr
+              ; type checking
+                | declare global const_id
+                | declare extern const_id|extern_id
 
 ; an expression
 expr ::=
@@ -105,6 +108,9 @@ literal ::=
           | vec3(expr, expr, expr)
           | enum(const_id, const_id)
 
+; a type
+type ::= void | int | float | bool | string | vec2 | vec3 | enum(const_id)
+
 ; a message and the options
 message ::= "string" [{message_opt }]
 message_opt ::= norush | noack
@@ -141,25 +147,11 @@ In a DLG program, you can have two kinds of variables :
   set extern var x
   ```
 
-Because of that, the compiler cannot know for sure at runtime that a variable is of a given type. For instance, in the expression `f() * 3`, the compiler cannot know which type the resulting expression will be, because `f` is not defined in the context of a DLG script.
+Because of that, the compiler cannot always know for sure that a variable is of a given type. For instance, in the expression `f() * 3`, the compiler cannot know which type the resulting expression will be, because `f` is not defined in the context of a DLG script. It follows :
+  * a **local** variable will always have a type, because it must have been declared at some point in the program
+  * a **global** variable will not always have a type, because it can be set in another script. However, if it is set in the current script, the type will be assumed by the compiler.
+  * an **extern** valiable will never have a type, unless declared. If not, the compiler gives it a "no assumption type", and type checking is done at runtime.
 
-The goal of type checking is to avoid errors that might be hard for the programmer to notice, so the static type checking of the DLG parser uses a little trick :
-  * a *literal* has an **actual type** that the compiler can recognize for sure
-  * a *local* variable have to be defined before it is used, so the compiler can infer the type of the variable : it will also have an **actual type**
-  * *global* and *external* variables cannot have a known type at compilation, so the compiler will give them an **expected type**
-  * a *function invocation* will also have an **expected type** because of its internal nature
-
-In composing types to ensure type correctness, the compiler will use the following rules to compose types when they interact together :
-  * two *actual types* will form an *actual type*
-  * an *expected type* and an *actual type* will form an *expected type*
-  * two *expected types* will form an *expected type*
-  * an *expected type* can carry no assumption regarding the type it will produce. in that case, it will be ignored by the computer and considered as valid in all cases
-
-This ensures a few things :
-  * operations that only use identifiers known by the compiler will be fully typed
-  * operations that includes external identifiers will have a type inferred from their use when possible, else it won't be caught by the static compiler
-
-Whenever an expression is left unchecked by the static compiler, it will be typed by the dynamic type checking system at runtime to ensure type correctness. The data computed by the static compiler will be transferred to the dynamic type compiler to avoid recomputations.
 
 In order to assert that a global variable or an extern symbol (a function, a variable, ..) is of a given type, you can use the following instruction to tell the compiler the type of the symbol.
 ```dlg
@@ -167,11 +159,30 @@ declare extern My.extern.variable type
 declare extern My.extern.function type (arg1 arg2 arg3)
 
 declare global myvariable type
-```
+  ```
+
+
+The goal of type checking is to avoid errors that might be hard for the programmer to notice, so the static type checking of the DLG parser uses a little trick :
+  * a *literal* has an **actual type** that the compiler can recognize for sure
+  * a *local* variable have to be defined before it is used, so the compiler can infer the type of the variable : it will also have an **actual type**
+  * *global* and *external* variables cannot have a known type at compilation, so the compiler will give them an **expected type**, unless they're explicitely declared. Then they will have an **actual type**.
+  * a *function invocation* will also have an **expected type** because of its external nature, unless it's explicitely declared. Then it will have an **actual type**.
+
+In composing types to ensure type correctness, the compiler will use the following rules to compose types when they interact together :
+  * two *actual types* will form an *actual type*
+  * an *expected type* and an *actual type* will form an *expected type*
+  * two *expected types* will form an *expected type*
+  * an *expected type* can carry no assumption regarding the type it will produce. in that case, it will be ignored by the computer and considered as valid in all cases. The runtime dynamic typechecking will catch type errors.
+
+This ensures a few things :
+  * operations that only use identifiers known by the compiler will be fully typed
+  * operations that includes external identifiers can be declared and be typed statically by the compiler; else, they will have a type inferred from their use when possible, and if not misuse won't be caught by the static compiler
+
+Whenever an expression is left unchecked by the static compiler, it will be typed by the dynamic type checking system at runtime to ensure type correctness. The data computed by the static compiler will be transferred to the dynamic type compiler to avoid recomputation.
+
+#### Type inference
 
 ### Dynamic type checking
-
-
 
 ## Bytecode
 
