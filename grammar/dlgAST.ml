@@ -47,7 +47,7 @@ and instruction =
   (** A send command **)
   | ISend of identifier located * (expression located option)
   (** A declare command **)
-  | IDeclare of variable located * typeconst located * typearglist option
+  | IDeclare of variable located * typeconst located * typearglist located option
 
 and expression =
   (** A literal (const value) **)

@@ -163,12 +163,12 @@ instruction:
       IDeclare (var, t, None)
     }
   (** a declare type command for global type **)
-  | KEYWORD_DECLARE KEYWORD_EXTERN id=located(identifier_obj) t=located(type_const) args=option(type_list)
+  | KEYWORD_DECLARE KEYWORD_EXTERN id=located(identifier_obj) t=located(type_const) args=option(located(type_list))
     {
       let var = Position.with_pos (Position.position id) (SExtern, (Position.value id)) in
       IDeclare (var, t, args)
     }
-  | KEYWORD_DECLARE KEYWORD_EXTERN id=located(identifier_var) t=located(type_const) args=option(type_list)
+  | KEYWORD_DECLARE KEYWORD_EXTERN id=located(identifier_var) t=located(type_const) args=option(located(type_list))
     {
       let var = Position.with_pos (Position.position id) (SExtern, (Position.value id)) in
       IDeclare (var, t, args)

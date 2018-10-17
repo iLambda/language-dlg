@@ -1,5 +1,6 @@
 open Position
 open DlgAST
+open Lexing
 
 (*
 * TYPING SYSTEM TYPES
@@ -125,14 +126,6 @@ let type_env_bind (env : typeenv) var (branch : branchid) tc =
       in Hashtbl.add env var (replace_branch d)
 
 (*
-  TYPE CHECKING METHODS
-*)
-type type_error =
-{
-  position: Position.position
-}
-
-(*
 * TYPE CONTAINERS HELPERS
 *)
 (* Returns true if the two type constants are the same *)
@@ -218,6 +211,165 @@ let least_type_container_of tc1 tc2 t = match tc1, tc2 with
     | TCExpected None, TCExpected None -> TCExpected None
 
 (*
+  TYPE CHECKING ERROR HELPERS
+*)
+(* Returns a string representing a given type t*)
+let string_of_type t = match t with
+  | TInt -> "int"
+  | TFloat -> "float"
+  | TBool -> "bool"
+  | TString -> "string"
+  | TEnum s -> "enum(" ^ s ^ ")"
+  | TVec2 -> "vec2"
+  | TVec3 -> "vec3"
+  | TAll -> "'t"
+  | TVoid -> "void"
+
+(* Returns a string representing the underlying type in a type container*)
+let string_of_type_container tc = match (type_assumed_from tc) with
+  (* We never show no-assumption types to the user *)
+  | None -> assert false
+  (* Return the matched type *)
+  | Some t -> string_of_type t
+
+let rec string_of_error_type t =
+  let rec string_of_args a = match a with
+    | [] -> "void"
+    | [t] -> string_of_type t
+    | h::t -> (string_of_type h) ^ " * " ^ (string_of_args t)
+  in match t with
+    | [] -> ""
+    | [a] -> string_of_args a
+    | h::t -> (string_of_args h) ^ " or " ^ (string_of_error_type t)
+
+
+(* The payload of a type error*)
+type type_error =
+{
+  position: Position.position;
+  reason: string;
+  expected: typeconst list list;
+  given: typeconst list list;
+}
+(* An type error exception*)
+exception Type_error of type_error
+
+(*Print a type error *)
+let print_type_error_at file err =
+  (* deconstruct error types *)
+  let pos = err.position in
+  let startpos = pos.start_p in
+  let endpos = pos.end_p in
+
+  let at_line p = p.pos_lnum in
+  let line_pos p = p.pos_cnum - p.pos_bol in
+  let get_line file p =
+    let pos_start_line = p.pos_bol in
+      (* set at beginning of line *)
+      seek_in file pos_start_line;
+      (* read line *)
+      input_line file
+  in let underline line start e =
+    if start == e then line, "", ""
+    else  (String.sub line 0 start), (String.sub line start (e-start)), (String.sub line e ((String.length line) - e))
+  in let header =
+    "Type error in line " ^ (string_of_int (at_line startpos)) ^
+    ", characters " ^ (string_of_int (line_pos startpos)) ^ ":" ^  (string_of_int (line_pos endpos)) ^
+    " : " ^ err.reason in
+  let m_s, m_u, m_e = underline (get_line file startpos) (line_pos startpos) (line_pos endpos) in
+  let expectedt = string_of_error_type err.expected in
+  let givent = string_of_error_type err.given in
+  let expected = if expectedt <> "" then ("\texpected : " ^ expectedt ^ "\n") else "" in
+  let given = if givent <> "" then ("\tgiven : " ^ givent ^ "\n") else "" in
+
+  ANSITerminal.print_string [] ("\n" ^ header ^ "\n" ^ m_s);
+  ANSITerminal.print_string [ANSITerminal.red; ANSITerminal.Underlined] m_u;
+  ANSITerminal.print_string [] (m_e ^ "\n" ^ expected ^ given)
+
+(* Throw type error with no type info *)
+let type_error_at msg tok =
+  (* construct the data *)
+  let payload = {
+    position = (Position.position tok);
+    reason = msg;
+    expected = [];
+    given = [];
+  } in raise (Type_error payload)
+
+(* Throw error : tc is not the expected type t*)
+let type_error_at_type msg tok tcgiven texp =
+  (* get the given type *)
+  let tgiven = match type_assumed_from tcgiven with
+    | None -> []
+    | Some t -> [[t]]
+  in
+  (* construct the data *)
+  let payload = {
+    position = (Position.position tok);
+    reason = msg;
+    expected = [[texp]];
+    given = tgiven;
+  } in raise (Type_error payload)
+
+(* Throw error : tc is not the expected types t*)
+let type_error_at_types msg tok tcgiven texps =
+  (* get the given type *)
+  let tgiven = match type_assumed_from tcgiven with
+    | None -> []
+    | Some t -> [[t]]
+  in
+  (* construct the data *)
+  let payload = {
+    position = (Position.position tok);
+    reason = msg;
+    expected = List.map (fun t -> [t]) texps;
+    given = tgiven;
+  } in raise (Type_error payload)
+
+(* Throw error : tc is not the same type tc*)
+let type_error_at_type_container msg tok tcgiven tcexp =
+  (* get the given types *)
+  let tgiven = match type_assumed_from tcgiven with
+    | None -> []
+    | Some t -> [[t]]
+  in let texp = match type_assumed_from tcexp with
+    | None -> []
+    | Some t -> [[t]]
+  in
+  (* construct the data *)
+  let payload = {
+    position = (Position.position tok);
+    reason = msg;
+    expected = texp;
+    given = tgiven;
+  } in raise (Type_error payload)
+
+
+(* Throw error : arglist type container does not represent type list*)
+let type_error_at_args msg tok argsgiven argsexpected =
+  let args = List.map (fun tc -> match type_assumed_from tc with | None -> assert false | Some t -> t) argsgiven in
+  (* construct the data *)
+  let payload = {
+    position = (Position.position tok);
+    reason = msg;
+    expected = argsexpected;
+    given = [args];
+  } in raise (Type_error payload)
+
+(* Throw error : tc is not the same type tc*)
+let type_error_at_args_container msg tok argsgiven argsexpected =
+  let args = List.map (fun tc -> match type_assumed_from tc with | None -> assert false | Some t -> t) argsgiven in
+  let argse = List.map (fun tc -> match type_assumed_from tc with | None -> assert false | Some t -> t) argsexpected in
+  (* construct the data *)
+  let payload = {
+    position = (Position.position tok);
+    reason = msg;
+    expected = [argse];
+    given = [args];
+  } in raise (Type_error payload)
+
+
+(*
 * TYPE CHECKER METHODS
 *)
 
@@ -237,9 +389,9 @@ let rec expr_type expr (env:typeenv) (branch:branchid) =
         let tcy = subexpr_type (unlocate y) in
         (* check if args are numbers *)
         if not (type_container_is_number tcx)
-        then failwith "Type error : vec2.x must be a number";
+        then type_error_at_types "vec2.x must be a number" x tcx [TFloat; TInt];
         if not (type_container_is_number tcy)
-        then failwith "Type error : vec2.y must be a number";
+        then type_error_at_types "vec2.y must be a number" y tcy [TFloat; TInt];
         (* return *)
         TCActual TVec2
       (* a vector. check the constructor *)
@@ -250,18 +402,19 @@ let rec expr_type expr (env:typeenv) (branch:branchid) =
         let tcz = subexpr_type (unlocate z) in
         (* check if args are numbers *)
         if not (type_container_is_number tcx)
-        then failwith "Type error : vec3.y must be a number";
+        then type_error_at_types "vec3.x must be a number" x tcx [TFloat; TInt];
         if not (type_container_is_number tcy)
-        then failwith "Type error : vec3.y must be a number";
+        then type_error_at_types "vec3.y must be a number" y tcy [TFloat; TInt];
         if not (type_container_is_number tcz)
-        then failwith "Type error : vec3.z must be a number";
+        then type_error_at_types "vec3.z must be a number" z tcz [TFloat; TInt];
         (* return *)
         TCActual TVec3
       (* a formatted string *)
       | LString fstr ->
         (* verify if underlying fstring if ok *)
         if check_fstring_type env branch fstr then TCActual TString
-        else failwith "Type error : fstring has inline tokens with unsound type"
+        (* we never are here. we always throw in a specific token*)
+        else assert false
       (* a literal without a constuctor. this is straightforward *)
       | _ -> TCActual (type_of_literal (unlocate lit))
     end
@@ -273,18 +426,19 @@ let rec expr_type expr (env:typeenv) (branch:branchid) =
         (* it is not. check its scope *)
         | None -> begin match (unlocate var) with
             (* local it must be defined before *)
-            | SLocal, id -> failwith ("Type error : local variable was not defined before use " ^ (match id with Id s -> s))
+            | SLocal, id -> type_error_at "local variable was not defined before use " var
             (* not local nor explicitely typed. can't assume anything *)
             | _ -> TCExpected None
           end
         (* it's been found. use the saved type container if the declaration one of a variable *)
         | Some td -> begin match td with
           | TDVariable c -> c
-          | TDFunction _ -> failwith "Type error : the identifier is a function and must be called with (..)"
+          | TDFunction _ -> type_error_at "the identifier is a function and must be called with (..)" var
         end
       end
 
     (** An operation **)
+    (** TODO : TYPE INFERENCE **)
     | EOperation (op, lhs, rhs) ->
       (* Returns an identity tuple matching the signature t, t -> t*)
       let make_id_tuple t = (t, t, t) in
@@ -389,22 +543,27 @@ let rec expr_type expr (env:typeenv) (branch:branchid) =
               TInt, TFloat, TBool;
               TFloat, TFloat, TBool
             ]
-        end in begin match resolve_args_type oplist (subexpr_type (unlocate lhs)) (subexpr_type (unlocate rhs)) with
-          | None -> failwith "Type error : operator does not support given type"
+        end in
+        let tclhs = (subexpr_type (unlocate lhs)) in
+        let tcrhs = (subexpr_type (unlocate rhs)) in
+        begin match resolve_args_type oplist tclhs tcrhs with
+          | None -> type_error_at_args "operator does not support given types" op [tclhs; tcrhs] []
           | Some tc -> tc
         end
 
     (** A ternary **)
+    (** TODO : TYPE INFERENCE **)
     | ECondition (cond, thendo, elsedo) ->
       (* check if condition type is bool *)
-      if not (type_container_is_type (subexpr_type (unlocate cond)) TBool)
-      then failwith "Type error : ternary condition needs bool";
+      let tccond = subexpr_type (unlocate cond) in
+      if not (type_container_is_type tccond TBool)
+      then type_error_at_type "ternary condition needs bool" cond tccond TBool;
       (* compute type containers of branches *)
       let then_tc = (subexpr_type (unlocate thendo))
       and else_tc = (subexpr_type (unlocate elsedo)) in
       (* compute least type container of both *)
       begin match least_type_container then_tc else_tc with
-        | None -> failwith "Type error : ternary branches must be of same type"
+        | None -> type_error_at_type_container "ternary branches must be of same type" elsedo then_tc else_tc;
         | Some t -> t
       end
     (** A function call has no expected type (because extern), except if it was bound before **)
@@ -416,21 +575,24 @@ let rec expr_type expr (env:typeenv) (branch:branchid) =
           (* bound. check if valid *)
           | Some td -> begin match td with
             (* Already bound to function. Type error*)
-            | TDVariable _ -> failwith "Type error : identifier has been defined as a variable"
+            | TDVariable _ -> type_error_at "identifier has been defined as a variable" id
             | TDFunction (tcret, tcargs) ->
               (* check if registered type declaration is the same as arglist*)
-              let argsisvalid = type_container_list_same tcargs (arglist_type (unlocate arglist) env branch) in
+              let targlist = (arglist_type (unlocate arglist) env branch) in
+              let argsisvalid = type_container_list_same tcargs targlist in
               (* check if type checking worked *)
-              if not argsisvalid then failwith "Type error: function was declared two times with different arguments";
+              if not argsisvalid
+              then type_error_at_args_container "function was declared two times with different arguments" id targlist tcargs;
               (* else throw warning : declared twice, redundant *)
               (* check if return type is void *)
               if type_container_is_type tcret TVoid then
-              failwith "Type error : a void returning function cannot be used in an expression (can't produce a type void)";
+              type_error_at "a void returning function cannot be used in an expression (can't produce a type void)" id;
               tcret
           end
         end
 
     (* Access to a constructed type *)
+    (** TODO : TYPE INFERENCE **)
     | EAccess (constr, id) ->
       (* get the type of the constructed type *)
       let constr_tc = (subexpr_type (unlocate constr)) in
@@ -446,14 +608,14 @@ let rec expr_type expr (env:typeenv) (branch:branchid) =
           | TVec2 ->
             (* check if accessed is x or y. else , throw*)
             if List.mem accessed ["x"; "y"] then least_type_container_of constr_tc constr_tc TFloat
-            else failwith ("Type error : accessed property '" ^ accessed ^ "' does not belong to type")
+            else type_error_at ("accessed property '" ^ accessed ^ "' does not belong to type") id
           (* A vector *)
           | TVec3 ->
             (* check if accessed is x or y. else , throw*)
             if List.mem accessed ["x"; "y"; "z"] then least_type_container_of constr_tc constr_tc TFloat
-            else failwith ("Type error : accessed property '" ^ accessed ^ "' does not belong to type")
+            else type_error_at ("accessed property '" ^ accessed ^ "' does not belong to type") id
           (* Anything else fails *)
-          | _ -> failwith "Type error : accessed type is not a constructed type "
+          | _ -> type_error_at "accessed type is not a constructed type " constr
 
         end
       end
@@ -509,9 +671,10 @@ let rec check_program_type p =
           | Some tc ->
             let expectedtype = match tc with
               | TDVariable c -> c
-              | TDFunction _ -> failwith "Type error : the identifier can't be a variable; it was already defined to be a function"
-            in let isvalid = expectedtype = (expr_type (unlocate expr) env branch) in
-            if not isvalid then failwith "Type error: variable was already set with a different type";
+              | TDFunction _ -> type_error_at "the identifier can't be a variable; it was already defined to be a function" var
+            in let curtc = (expr_type (unlocate expr) env branch)
+            in let isvalid = expectedtype = curtc in
+            if not isvalid then type_error_at_type_container "variable was already set with a different type" var curtc expectedtype;
             isvalid
         end
 
@@ -520,14 +683,16 @@ let rec check_program_type p =
         (* check if variable was already bound in the typeenvflat *)
         begin match type_env_get env (unlocate var) branch with
           (* not bound. do bind. this line is valid *)
+          (* TODO : if using a global variable, use assumption or actual type ?*)
           | None -> type_env_bind env (unlocate var) branch (TDVariable (expr_type (unlocate expr) env branch)); true
           (* bound. check if valid *)
           | Some tc ->
             let expectedtype = match tc with
               | TDVariable c -> c
-              | TDFunction _ -> failwith "Type error : the identifier can't be a variable; it was already defined to be a function"
-            in let isvalid = expectedtype = (expr_type (unlocate expr) env branch) in
-            if not isvalid then failwith "Type error: variable was already set with a different type";
+              | TDFunction _ -> type_error_at "the identifier can't be a variable; it was already defined to be a function" var
+            in let curtc = (expr_type (unlocate expr) env branch)
+            in let isvalid = expectedtype = curtc in
+            if not isvalid then type_error_at_type_container "variable was already set with a different type" var curtc expectedtype;
             isvalid
         end
 
@@ -537,7 +702,7 @@ let rec check_program_type p =
         let tc = expr_type (unlocate expr) env branch in
         (* check if expression is a number type *)
         let isvalid = type_container_is_number tc in
-        if not isvalid then failwith "Type error: speed needs a number";
+        if not isvalid then type_error_at_types "speed needs a number" expr tc [TFloat; TInt];
         isvalid
 
       (* a send instruction. since it has external effect, we don't expect nothing *)
@@ -549,7 +714,7 @@ let rec check_program_type p =
         let tc = expr_type (unlocate expr) env branch in
         (* check if expression is a number type *)
         let isvalid = type_container_is_number tc in
-        if not isvalid then failwith "Type error: speed needs a number";
+        if not isvalid then type_error_at_types "speed needs a number" expr tc [TFloat; TInt];
         isvalid
 
       (* a choice possibility*)
@@ -565,7 +730,7 @@ let rec check_program_type p =
             (* verify if underlying fstring is ok *)
             (if check_fstring_type env branch fstr
             then true
-            else failwith "Type error : message has unsound inline tokens")
+            else assert false) (* we can never be here, errors will be thrown by check_fstring_type *)
             (* check the subprogram *)
             && (check_subprogram_type (unlocate prog) env (branch_child branch i))
             (* check the next choice *)
@@ -582,22 +747,25 @@ let rec check_program_type p =
           (* A value. Okay iff the same type as etype *)
           | PValue e ->
             (* get type equality between e and etype *)
-            let sametype = type_container_is_same etype (expr_type (unlocate e) env branch) in
+            let curetc = (expr_type (unlocate e) env branch) in
+            let sametype = type_container_is_same etype curetc in
             (* check if passed *)
-            if not sametype then failwith "Type error : value pattern must have same type as the matched expression"
+            if not sametype
+            then type_error_at_type_container "value pattern must have same type as the matched expression" e curetc etype
             else sametype
           (* A binding expression *)
           | PBinding (id, e) ->
             (* get a type declaration for identifier (always local) *)
             let idtype = type_env_get env (SLocal, unlocate id) branch in
             (* check if variable is already bound *)
-            if idtype <> None then failwith "Type error : identifier is already bound";
+            if idtype <> None then type_error_at "identifier is already bound" id;
             (* it wasn't. bind it *)
             type_env_bind env (SLocal, unlocate id) b (TDVariable etype);
             (* check if expr is boolean*)
-            if not (type_container_is_type (expr_type (unlocate e) env b) TBool)
+            let tccond = (expr_type (unlocate e) env b) in
+            if not (type_container_is_type tccond TBool)
             (* it's not *)
-            then failwith "Type error : binding pattern condition must be a boolean"
+            then type_error_at_type "binding pattern condition must be a boolean" e tccond TBool
             (* it is *)
             else true
         in
@@ -626,7 +794,7 @@ let rec check_program_type p =
         let fstr, _ = unlocate msg in
           (* verify if underlying fstring is ok *)
           if check_fstring_type env branch fstr then true
-          else failwith "Type error : message has unsound inline tokens"
+          else assert false (* errors are thrown by check_fstring_type *)
 
       (* A declare type *)
       | IDeclare (var, ret, a) ->
@@ -642,10 +810,10 @@ let rec check_program_type p =
               (* bound. check if valid *)
               | Some td -> begin match td with
                 (* Already bound to function. Type error*)
-                | TDFunction _ -> failwith "Type error : the identifier can't be a variable; it was already defined to be a function"
+                | TDFunction _ -> type_error_at "the identifier can't be a variable; it was already defined to be a function" var
                 | TDVariable tc ->
                   let isvalid = type_container_is_type tc (unlocate ret) in
-                  if not isvalid then failwith "Type error: variable was declared two times with different types";
+                  if not isvalid then type_error_at_type "variable was declared two times with different types" var tc (unlocate ret);
                   (* else throw warning *)
                   isvalid
               end
@@ -656,17 +824,17 @@ let rec check_program_type p =
             (** BIND GLOBALLY OR LOCALLY ? branch or [] ? **)
             begin match type_env_get env (unlocate var) branch with
               (* not bound. do bind. this line is valid *)
-              | None -> type_env_bind env (unlocate var) branch (TDFunction ((TCActual (unlocate ret)), (type_container_list_of_args args))); true
+              | None -> type_env_bind env (unlocate var) branch (TDFunction ((TCActual (unlocate ret)), (type_container_list_of_args (unlocate args)))); true
               (* bound. check if valid *)
               | Some td -> begin match td with
                 (* Already bound to function. Type error*)
-                | TDVariable _ -> failwith "Type error : the identifier can't be a variable; it was already defined to be a function"
+                | TDVariable _ -> type_error_at "the identifier can't be a variable; it was already defined to be a function" var
                 | TDFunction (tcret, tcargs) ->
                   let retisvalid = type_container_is_type tcret (unlocate ret) in
-                  let argsisvalid = type_container_list_same tcargs (type_container_list_of_args args) in
+                  let argsisvalid = type_container_list_same tcargs (type_container_list_of_args (unlocate args)) in
                   (* check if type checking worked *)
-                  if not retisvalid then failwith "Type error: function was declared two times with different return types";
-                  if not argsisvalid then failwith "Type error: function was declared two times with different arguments";
+                  if not retisvalid then type_error_at_type "function was declared two times with different return types" ret tcret (unlocate ret);
+                  if not argsisvalid then type_error_at_args_container "function was declared two times with different arguments" args tcargs (type_container_list_of_args (unlocate args));
                   (* else throw warning *)
                   retisvalid && argsisvalid
               end
@@ -684,15 +852,16 @@ let rec check_program_type p =
           (* bound. check if valid *)
           | Some td -> begin match td with
             (* Bound to variable. Type error*)
-            | TDVariable _ -> failwith "Type error : can't use invoke on a variable"
+            | TDVariable _ -> type_error_at "can't use invoke on a variable" id
             (* Bound to function. Check args *)
             | TDFunction (tcret, tcargs) ->
-              let argsisvalid = type_container_list_same tcargs (arglist_type (unlocate args) env branch) in
+              let tcarglist = (arglist_type (unlocate args) env branch) in
+              let argsisvalid = type_container_list_same tcargs tcarglist in
               let retisvalid = type_container_is_type tcret TVoid in
               (* check if type checking  on arguments worked *)
-              if not argsisvalid then failwith "Type error: wrong type of arguments in invoke";
+              if not argsisvalid then type_error_at_args_container "wrong type of arguments in invoke" args tcargs tcarglist;
               (* TODO: do we keep this ? we use a lot of funcs w/ side-effects in game programming. maybe warning ?*)
-              if not retisvalid then failwith "Type error: a function called with the invoke instr must return void";
+              if not retisvalid then type_error_at_type "a function called with the invoke instr must return void" id tcret TVoid;
               (* return *)
               retisvalid && argsisvalid
           end

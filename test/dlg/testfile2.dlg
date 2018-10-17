@@ -2,10 +2,12 @@ declare extern Protagonist.Protagonist.isVisible enum(ldl)
 declare extern rand float ()
 declare extern Protagonist.Protagonist.something void (int, string)
 
-invoke Protagonist.Protagonist.something (3, 'ah')
+invoke Protagonist.Protagonist.something (3, 'ahds ')
 
+"alors "
 set i rand() + 1
-set m vec3(1, 2, 0)
+invoke Protagonist.Protagonist.something (1, 'a')
+set m vec3(1, 2, 2)
 set n m+vec3(0, 0, 0)
 ? m
   -> vec3(0, 0, 0)

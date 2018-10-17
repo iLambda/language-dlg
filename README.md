@@ -157,6 +157,7 @@ In order to assert that a global variable or an extern symbol (a function, a var
 ```dlg
 declare extern My.extern.variable type
 declare extern My.extern.function type (arg1 arg2 arg3)
+declare extern myfunc (arg1 arg2 arg3)
 
 declare global myvariable type
   ```

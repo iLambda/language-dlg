@@ -2,6 +2,7 @@ open Lexing
 open DlgParser
 open DlgAST
 open Printf
+open Typing
 
 let usage () = eprintf "usage: dlg file\n"; exit 1
 
@@ -15,9 +16,11 @@ let main () =
             with
               |  Parsing.Parse_error -> Error.print_syntax_error_at c lb; exit 0
             in
-  let str = string_of_bool (Typing.check_program_type ast) in
-  print_string (str ^ "\n");
-
+  let () = try ignore(Typing.check_program_type ast)
+               with
+                | Typing.Type_error te -> Typing.print_type_error_at c te; exit 0
+               in
+  print_string "Type ok. \n";
   close_in c
 
 let _ = Printexc.catch main ()

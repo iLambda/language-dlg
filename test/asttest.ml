@@ -95,7 +95,7 @@ and string_of_typelist tl =
   let rec string_of_typelist_args = function
     | [] -> ""
     | t::h -> (string_of_type (unlocate t)) ^ "; " ^ (string_of_typelist_args h)
-  in "(" ^ (string_of_typelist_args tl) ^ ")"
+  in "(" ^ (string_of_typelist_args (unlocate tl)) ^ ")"
 
 and string_of_pattern p = match p with
   | PWildcard -> "_"
