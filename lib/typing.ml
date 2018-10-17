@@ -674,7 +674,7 @@ let rec check_program_type p =
               | TDFunction _ -> type_error_at "the identifier can't be a variable; it was already defined to be a function" var
             in let curtc = (expr_type (unlocate expr) env branch)
             in let isvalid = expectedtype = curtc in
-            if not isvalid then type_error_at_type_container "variable was already set with a different type" var curtc expectedtype;
+            if not isvalid then type_error_at_type_container "variable was already set with a different type" expr curtc expectedtype;
             isvalid
         end
 
@@ -692,7 +692,7 @@ let rec check_program_type p =
               | TDFunction _ -> type_error_at "the identifier can't be a variable; it was already defined to be a function" var
             in let curtc = (expr_type (unlocate expr) env branch)
             in let isvalid = expectedtype = curtc in
-            if not isvalid then type_error_at_type_container "variable was already set with a different type" var curtc expectedtype;
+            if not isvalid then type_error_at_type_container "variable was already set with a different type" expr curtc expectedtype;
             isvalid
         end
 

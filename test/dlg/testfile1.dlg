@@ -1,5 +1,7 @@
 ;; DLG file
 
+declare extern Protagonist.CharacterController2D.lockControls int
+
 ; intro progress ids :
 ;   0 : wakeup
 ;   1 : livingroom
