@@ -173,12 +173,6 @@ The goal of type checking is to avoid errors that might be hard for the programm
   * *global* and *external* variables cannot have a known type at compilation, so the compiler will give them an **expected type**, unless they're explicitely declared. Then they will have an **actual type**.
   * a *function invocation* will also have an **expected type** because of its external nature, unless it's explicitely declared. Then it will have an **actual type**.
 
-In composing types to ensure type correctness, the compiler will use the following rules to compose types when they interact together :
-  * two *actual types* will form an *actual type*
-  * an *expected type* and an *actual type* will form an *expected type*
-  * two *expected types* will form an *expected type*
-  * an *expected type* can carry no assumption regarding the type it will produce. in that case, it will be ignored by the computer and considered as valid in all cases. The runtime dynamic typechecking will catch type errors.
-
 This ensures a few things :
   * operations that only use identifiers known by the compiler will be fully typed
   * operations that includes external identifiers can be declared and be typed statically by the compiler; else, they will have a type inferred from their use when possible, and if not misuse won't be caught by the static compiler
