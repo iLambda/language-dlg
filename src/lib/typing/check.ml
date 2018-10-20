@@ -91,6 +91,9 @@ let rec get_expr_type env branch = function
           (* Check arguments *)
           if not (type_list_is_same targs0 targs)
           then raise (make_located_type_error ReasonIncompatibleDeclaration arglist None [ TCFunc (tret, targs0) ]);
+          (* Check if type is void *)
+          if type_is_same tret TVoid
+          then raise (make_located_type_error ReasonNoProduceVoid nameid (Some (TCFunc (tret, targs0))) []);
           (* Return the type *)
           tret
       end
@@ -361,8 +364,6 @@ let rec check_instruction_type env branch = function
               then raise_located_type_error ReasonIncompatibleDeclaration args (Some (TCFunc twanted)) [ TCFunc tfunc ]
           end
         end
-
-
     end
   (* Any other instruction needs no checking *)
   | _ -> ()
