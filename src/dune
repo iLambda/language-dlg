@@ -1,0 +1,13 @@
+(include_subdirs no)
+(executable
+ (name typetest)
+ (modules typetest)
+ (libraries utils DLG typing))
+(executable
+ (name asttest)
+ (modules asttest)
+ (libraries utils DLG typing))
+(executable
+  (name lextest)
+  (modules lextest)
+  (libraries utils DLG typing))

@@ -1,0 +1,13 @@
+(include_subdirs no)
+(rule
+ (targets lexer.ml)
+ (deps    dlg.mll)
+ (action  (run ocamllex -o %{targets} %{deps})))
+
+(menhir
+  (merge_into parser)
+   (modules dlg))
+
+(library
+  (name DLG)
+  (libraries utils))

@@ -1,9 +1,8 @@
 {
   open Lexing
-  open DlgAST
-  open DlgParser
-  open Error
-  open Position
+  open Parser
+  open Utils.Error
+  open Utils.Position
 
   let next_line_and f lexbuf =
     Lexing.new_line lexbuf;

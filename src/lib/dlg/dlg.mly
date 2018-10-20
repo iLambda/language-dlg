@@ -1,6 +1,6 @@
 %{
-  open DlgAST
-  open Position
+  open Utils.Position
+  open Ast
 %}
 
 (*
@@ -57,18 +57,18 @@
 %token OPERATOR_TERNARY
 
 (* operation *)
-%token <DlgAST.operation> OPERATION_PLUS
-%token <DlgAST.operation> OPERATION_MINUS
-%token <DlgAST.operation> OPERATION_STAR
-%token <DlgAST.operation> OPERATION_DIVIDE
-%token <DlgAST.operation> OPERATION_AND
-%token <DlgAST.operation> OPERATION_OR
-%token <DlgAST.operation> OPERATION_ISEQ
-%token <DlgAST.operation> OPERATION_ISNEQ
-%token <DlgAST.operation> OPERATION_LEQ
-%token <DlgAST.operation> OPERATION_GEQ
-%token <DlgAST.operation> OPERATION_LESS
-%token <DlgAST.operation> OPERATION_MORE
+%token <Ast.operation> OPERATION_PLUS
+%token <Ast.operation> OPERATION_MINUS
+%token <Ast.operation> OPERATION_STAR
+%token <Ast.operation> OPERATION_DIVIDE
+%token <Ast.operation> OPERATION_AND
+%token <Ast.operation> OPERATION_OR
+%token <Ast.operation> OPERATION_ISEQ
+%token <Ast.operation> OPERATION_ISNEQ
+%token <Ast.operation> OPERATION_LEQ
+%token <Ast.operation> OPERATION_GEQ
+%token <Ast.operation> OPERATION_LESS
+%token <Ast.operation> OPERATION_MORE
 
 (* Message *)
 %token STRING_INLINE
@@ -86,7 +86,7 @@
 %token PUNCTUATION_RSQBRACKET
 %token PUNCTUATION_DOT
 
-%start<DlgAST.t> program
+%start<Ast.t> program
 
 
 (*
@@ -99,6 +99,7 @@
 %nonassoc OPERATION_ISEQ, OPERATION_ISNEQ, OPERATION_LEQ, OPERATION_GEQ, OPERATION_LESS, OPERATION_MORE
 %left OPERATION_PLUS, OPERATION_MINUS
 %left OPERATION_DIVIDE OPERATION_STAR
+%right PREC_EXPR_TYPECAST
 %nonassoc PUNCTUATION_DOT
 
 %%
@@ -159,18 +160,18 @@ instruction:
   (** a declare type command for global type **)
   | KEYWORD_DECLARE KEYWORD_GLOBAL id=located(identifier_var) t=located(type_const)
     {
-      let var = Position.with_pos (Position.position id) (SGlobal, (Position.value id)) in
+      let var = with_pos (position id) (SGlobal, (value id)) in
       IDeclare (var, t, None)
     }
   (** a declare type command for global type **)
   | KEYWORD_DECLARE KEYWORD_EXTERN id=located(identifier_obj) t=located(type_const) args=option(located(type_list))
     {
-      let var = Position.with_pos (Position.position id) (SExtern, (Position.value id)) in
+      let var = with_pos (position id) (SExtern, (value id)) in
       IDeclare (var, t, args)
     }
   | KEYWORD_DECLARE KEYWORD_EXTERN id=located(identifier_var) t=located(type_const) args=option(located(type_list))
     {
-      let var = Position.with_pos (Position.position id) (SExtern, (Position.value id)) in
+      let var = with_pos (position id) (SExtern, (value id)) in
       IDeclare (var, t, args)
     }
 
@@ -214,6 +215,9 @@ expr:
   (* access operator *)
   | vec=located(expr) PUNCTUATION_DOT PUNCTUATION_LSQBRACKET coord=located(identifier_var) PUNCTUATION_RSQBRACKET
     { EAccess (vec, coord) }
+  (* a type cast*)
+  | t = delimited(PUNCTUATION_LPAREN, located(type_const), PUNCTUATION_RPAREN) e=located(expr) %prec PREC_EXPR_TYPECAST
+    { ETypeCast (t, e) }
   (* infix operators *)
   | lhs = located(expr) operator = located(OPERATION_PLUS) rhs = located(expr)
   | lhs = located(expr) operator = located(OPERATION_MINUS) rhs = located(expr)
@@ -230,9 +234,9 @@ expr:
     {
       (* check if expression is already an operation *)
       EOperation (operator, lhs, rhs)
-      (*match Position.value rhs with
+      (*match value rhs with
         (* recompose arguments *)
-        | EOperation (o, args) when (Position.value o) = (Position.value operator) -> EOperation (operator, lhs::args)
+        | EOperation (o, args) when (value o) = (value operator) -> EOperation (operator, lhs::args)
         (* create a new operation *)
         | _                                                                        -> EOperation (operator, [lhs; rhs])
       *)
@@ -289,7 +293,7 @@ identifier_obj:
 
 (* types *)
 type_list:
-  | args=delimited(PUNCTUATION_LPAREN, separated_list(PUNCTUATION_COMMA, located(type_const)), PUNCTUATION_RPAREN)
+  | args=delimited(PUNCTUATION_LPAREN, separated_list(PUNCTUATION_COMMA, type_const), PUNCTUATION_RPAREN)
     { args }
 
 type_const:
@@ -372,5 +376,5 @@ substring:
 
 (* Inline functions & macros *)
 %inline located(X): x=X {
-  Position.with_poss $startpos $endpos x
+  with_poss $startpos $endpos x
 }
