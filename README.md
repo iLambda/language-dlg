@@ -8,13 +8,17 @@ DLG is a scripting language bundled with expression evaluation & code interactiv
 
 This project depends on the following modules :
   * menhir
-  * sexplib
-  * ppx_sexp_conv
+  * dune
   * ANSITerminal
 
 You can install them by typing :
 ```bash
-$$ opam install menhir sexplib ppx_sexp_conv ANSITerminal
+$$ opam install menhir dune ANSITerminal
+```
+
+You can build the project by going to the root folder and using :
+```bash
+$$ make
 ```
 
 ## DLG language
