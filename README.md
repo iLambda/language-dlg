@@ -25,7 +25,7 @@ $$ make
 
 ### Syntax
 
-## DLG
+## DLG compiler
 
 ### Compiler optimisations
 
