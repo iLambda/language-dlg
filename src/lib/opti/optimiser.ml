@@ -606,8 +606,6 @@ and optimise_operation lhs op rhs = match op with
           (* If we're here, equal returned something other than a boolean. This is not feasible *)
           | _ -> assert false
         end
-
-
     end
 
 (* Optimizes a formatted string *)
