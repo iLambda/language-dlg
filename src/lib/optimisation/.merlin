@@ -2,7 +2,7 @@ B /home/ilambda/.opam/system/lib/ANSITerminal
 B /home/ilambda/.opam/system/lib/bytes
 B /usr/lib/ocaml
 B ../../../_build/default/src/lib/dlg/.DLG.objs
-B ../../../_build/default/src/lib/optimiser/.optimiser.objs
+B ../../../_build/default/src/lib/optimisation/.optimiser.objs
 B ../../../_build/default/src/lib/typing/.typing.objs
 B ../../../_build/default/src/lib/utils/.utils.objs
 S /home/ilambda/.opam/system/lib/ANSITerminal
