@@ -27,11 +27,7 @@ set kiiol ((vec2(3+2, 1+2)+vec2(1, 0))*1.5).[x]
 set k i
 set j 'ads\c{}$i$'!=('a'+'ds\c{}$i$')
 ? 3
-  -> _
-    set m m
+  -> x when true
+    set x x+1
     set i i+110
     nop
-set dsqd 'a'
-set a true
-set b true
-set lelele a || true

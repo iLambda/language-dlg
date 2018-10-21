@@ -3,7 +3,7 @@ open DLG.Ast
 (* Raised when there was a failure in optimising something *)
 exception Optimisation_failure
 (* Raised in order to take a shortcut a always used branch in the optimisation process *)
-exception Optimisation_always_used_branch of program
+exception Optimisation_always_used_branch of program * identifier option
 (* Raised when a wildcard pattern is matched so it cuts all the branches after *)
 exception Optimisation_unused_branches_after of pattern
 

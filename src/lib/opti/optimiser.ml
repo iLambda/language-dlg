@@ -5,7 +5,7 @@ open Typing.Type
 (* Raised when there was a failure in optimising something *)
 exception Optimisation_failure
 (* Raised in order to take a shortcut a always used branch in the optimisation process *)
-exception Optimisation_always_used_branch of program
+exception Optimisation_always_used_branch of program * identifier option
 (* Raised when a wildcard pattern is matched so it cuts all the branches after *)
 exception Optimisation_unused_branches_after of pattern
 
@@ -736,7 +736,7 @@ and optimise_instr instr = match instr with
           | PWildcard ->
             (* if we're in the first branch, we always use this branch *)
             if isfirstbranch
-            then raise (Optimisation_always_used_branch (value prog));
+            then raise (Optimisation_always_used_branch ((value prog), None));
             (* return pattern *)
             raise (Optimisation_unused_branches_after PWildcard)
           (* A simple value *)
@@ -754,7 +754,7 @@ and optimise_instr instr = match instr with
                 (* it's always reached. *)
                 (* if we're the first branch, we always use this branch *)
                 if isfirstbranch
-                then raise (Optimisation_always_used_branch (value prog));
+                then raise (Optimisation_always_used_branch ((value prog), Some (value id)));
                 (* we're not the first branch. cut short *)
                 raise (Optimisation_unused_branches_after (PBinding (id, unknown_pos optexpr)))
               (* the expression is a literal, and it's false *)
@@ -791,7 +791,16 @@ and optimise_instr instr = match instr with
       [ ICondition (unknown_pos optmatched, optbranches) ]
     end with
       (* Cut short ; this branch is always used, optimise *)
-      | Optimisation_always_used_branch prog -> List.rev (List.rev_map value prog)
+      | Optimisation_always_used_branch (prog, id) ->
+        (* return the list of instructions  *)
+        let progreplaced = List.rev (List.rev_map value prog) in
+        (* Check if identifier need be bound *)
+        begin match id with
+          (* No identifier needed. *)
+          | None -> progreplaced
+          (* Add a bound identifier definition before *)
+          | Some i -> (ISet (unknown_pos (SLocal, i), unknown_pos optmatched))::progreplaced
+        end
     end
 
   (* Don't optimise *)

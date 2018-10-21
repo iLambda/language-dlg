@@ -195,6 +195,11 @@ let main () =
                 | Typing.Error.Type_error e -> Typing.Error.print_type_error_at e (Some c); exit 0
                in
   let optiast = Opti.Optimiser.optimise_program ast in
+  (* Check typing *)
+  let () = try Typing.Check.check_program_type optiast
+               with
+                | Typing.Error.Type_error e -> Typing.Error.print_type_error_at e (Some c); exit 0
+               in
   let str = (string_of_program optiast) ^ "\n" in
   print_string str;
 
