@@ -14,4 +14,4 @@
 (executable
   (name optitest)
   (modules optitest)
-  (libraries utils DLG typing opti))
+  (libraries utils DLG typing optimiser))

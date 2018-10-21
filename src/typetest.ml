@@ -17,7 +17,7 @@ let main () =
               |  Parsing.Parse_error -> print_string "ah"; exit 0
             in
   (* Check typing *)
-  let () = try Typing.Check.check_program_type ast
+  let () = try Typing.Checker.check_program_type ast
                with
                 | Typing.Error.Type_error e -> Typing.Error.print_type_error_at e (Some c); exit 0
                in

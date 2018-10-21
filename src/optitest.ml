@@ -190,13 +190,13 @@ let main () =
               |  DLG.Parser.Error -> Utils.Error.print_syntax_error_at c lb; exit 0
             in
   (* Check typing *)
-  let () = try Typing.Check.check_program_type ast
+  let () = try Typing.Checker.check_program_type ast
                with
                 | Typing.Error.Type_error e -> Typing.Error.print_type_error_at e (Some c); exit 0
                in
-  let optiast = Opti.Optimiser.optimise_program ast in
+  let optiast = Optimiser.optimise_program ast in
   (* Check typing *)
-  let () = try Typing.Check.check_program_type optiast
+  let () = try Typing.Checker.check_program_type optiast
                with
                 | Typing.Error.Type_error e -> Typing.Error.print_type_error_at e (Some c); exit 0
                in

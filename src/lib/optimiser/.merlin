@@ -2,7 +2,7 @@ B /home/ilambda/.opam/system/lib/ANSITerminal
 B /home/ilambda/.opam/system/lib/bytes
 B /usr/lib/ocaml
 B ../../../_build/default/src/lib/dlg/.DLG.objs
-B ../../../_build/default/src/lib/opti/.opti.objs
+B ../../../_build/default/src/lib/optimiser/.optimiser.objs
 B ../../../_build/default/src/lib/typing/.typing.objs
 B ../../../_build/default/src/lib/utils/.utils.objs
 S /home/ilambda/.opam/system/lib/ANSITerminal
@@ -12,4 +12,4 @@ S ../dlg
 S .
 S ../typing
 S ../utils
-FLG -open Opti -w @a-4-29-40-41-42-44-45-48-58-59-60-40 -strict-sequence -strict-formats -short-paths -keep-locs
+FLG -w @a-4-29-40-41-42-44-45-48-58-59-60-40 -strict-sequence -strict-formats -short-paths -keep-locs
