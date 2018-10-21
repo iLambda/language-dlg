@@ -1,7 +1,7 @@
 declare extern Protagonist.Protagonist.isVisible enum(ldl)
 declare extern rand float ()
 declare extern Protagonist.Protagonist.something void (int, string)
-declare extern v void
+declare extern v int
 
 invoke Protagonist.Protagonist.something (3, 'ahds ')
 
@@ -10,11 +10,25 @@ set i 2+3+4+5
 invoke Protagonist.Protagonist.something (1, 'a')
 set m vec3(1, 2, 2)
 set n m+vec3(0, 0, 0)
+set n n
 ? m
-  -> vec3(0, 0, 0)
+  -> vec3(0, 1, 1) / rand()
+    nop
     nop
   -> v when v.[z] * v.[z] = 2
     set n n
     nop
   -> _
+    set n n
     nop
+
+set kiiol ((vec2(3+2, 1+2)+vec2(1, 0))*1.5).[x]
+;set n n
+set k i
+set j 'ads\c{}$i$'!=('a'+'ds\c{}$i$')
+? 3
+  -> _
+    set m m
+    set i i+110
+    nop
+set dsqd 'a'

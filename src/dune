@@ -11,3 +11,7 @@
   (name lextest)
   (modules lextest)
   (libraries utils DLG typing))
+(executable
+  (name optitest)
+  (modules optitest)
+  (libraries utils DLG typing opti))
