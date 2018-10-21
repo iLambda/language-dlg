@@ -31,7 +31,7 @@ $$ make
 
 The compiler yields optimisations that do not change the meaning of the program, but reduce the size of the bytecode (by reducing the size of the AST).
 
-#### Inside programs
+#### Inside programs 
 
 The followings optimisations are done by the compiler in a program :
 * a group of `nop` instructions will be collapsed into one
