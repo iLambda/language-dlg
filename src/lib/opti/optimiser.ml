@@ -123,28 +123,54 @@ let rec optimise_expr expr = match expr with
     (* Optimize lhs and rhs *)
     let optlhs = optimise_expr (value lhs) in
     let optrhs = optimise_expr (value rhs) in
-    (* Match over the two*)
-    begin match optlhs, optrhs with
-      (* Two literals. Compute *)
-      | ELiteral { value=llit; _ }, ELiteral { value=rlit; _ } ->
-        (* Try to compute them *)
-        let result = try Some (optimise_operation llit (value op) rlit)
-                     with Optimisation_failure -> None in
-        (* Check if computation worked *)
-        begin match result with
-          (* Can't optimize more *)
-          | None -> EOperation(op, unknown_pos optlhs, unknown_pos optrhs)
-          (* Return the computation *)
-          | Some r -> ELiteral (unknown_pos r)
-        end
-      (* Anything else ; can't optimize more *)
-      | _ -> EOperation(op, unknown_pos optlhs, unknown_pos optrhs)
+    (* Try to optimize the operation by computing *)
+    let result = try Some (optimise_operation_lazy optlhs (value op) optrhs)
+                 with Optimisation_failure -> None in
+    (* Check if computation worked *)
+    begin match result with
+      (* Can't optimize more *)
+      | None -> EOperation(op, unknown_pos optlhs, unknown_pos optrhs)
+      (* Return the computation *)
+      | Some r -> ELiteral (unknown_pos r)
     end
 
 
   (* Ignore ; can't optimize *)
   | _ -> expr
 
+
+(* Optimizes a computation between literals, but the evaluation of the lhs and lhs as literals can be carried after *)
+and optimise_operation_lazy lhs op rhs = match op with
+  (* and operator can be lazy *)
+  | OpAnd -> begin match lhs, rhs with
+      (* one of them is a true literal *)
+      | ELiteral { value=LBool false; _ }, _ -> LBool (false)
+      | _, ELiteral { value=LBool false; _ } -> LBool (false)
+      (* Literals. Ok*)
+      | ELiteral { value=llit; _ }, ELiteral { value=rlit; _ } -> optimise_operation llit op rlit
+      (* Couldn't optimize *)
+      | _ -> raise Optimisation_failure
+      end
+
+  (* or operator can be lazy *)
+  | OpOr -> begin match lhs, rhs with
+      (* one of them is a true literal *)
+      | ELiteral { value=LBool true; _ }, _ -> LBool (true)
+      | _, ELiteral { value=LBool true; _ } -> LBool (true)
+      (* Literals. Ok*)
+      | ELiteral { value=llit; _ }, ELiteral { value=rlit; _ } -> optimise_operation llit op rlit
+      (* Couldn't optimize *)
+      | _ -> raise Optimisation_failure
+      end
+
+  (* other cases will unfreeze lhs and rhs*)
+  | _ -> begin match lhs, rhs with
+    (* Literals. Ok*)
+    | ELiteral { value=llit; _ }, ELiteral { value=rlit; _ } -> optimise_operation llit op rlit
+    (* Couldn't optimize *)
+    | _ -> raise Optimisation_failure
+  end
+(* val optimise_operation_lazy : expression -> operation -> expression -> literal *)
 
 (* Optimizes a computation between literals *)
 and optimise_operation lhs op rhs = match op with

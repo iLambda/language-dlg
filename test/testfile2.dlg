@@ -32,3 +32,6 @@ set j 'ads\c{}$i$'!=('a'+'ds\c{}$i$')
     set i i+110
     nop
 set dsqd 'a'
+set a true
+set b true
+set lelele a || true
