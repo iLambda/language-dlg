@@ -77,6 +77,8 @@ let type_valid_casts_from t =
 let type_is_valid_cast fromtype totype =
   (* If type is unknown, it is ok *)
   if fromtype = TUnknown then true
+  (* If void, not ok *)
+  else if totype = TVoid then false
   else
   (* Get the list of valid casts *)
   let valid_casts = type_valid_casts_from fromtype in
@@ -118,6 +120,7 @@ let type_op_signature = function
       type_of_function TFloat [TFloat; TFloat];
       (* string repetition *)
       type_of_function TString [TInt; TString];
+      type_of_function TString [TString; TInt];
       (* 2D vector scaling *)
       type_of_function TVec2 [TInt; TVec2];
       type_of_function TVec2 [TFloat; TVec2];
@@ -190,3 +193,33 @@ let type_return_op lhs op rhs =
     | None -> raise (Invalid_argument "lhs and rhs types not compatible with operator")
     (* a signature was found ; return the return type *)
     | Some (ret, _) -> ret
+
+
+(* Casts a literal *)
+let type_cast_literal tdest lit =
+  (* Get literal type *)
+  let tlit = type_of_literal lit in
+  (* Check if type cast valid *)
+  if not (type_is_valid_cast tlit tdest)
+  then raise (Invalid_argument "Can't perform a cast that is not allowed");
+  (* Check if identity cast. If so, return literal *)
+  if type_is_same tdest tlit then lit
+  else
+  (* Perform the cast *)
+  match lit with
+    (* A float *)
+    | LFloat f -> begin match tdest with
+      (* To an int *)
+      | TInt -> LInt (Int32.of_float f) (* WARNING : can overflow*)
+      (* Can't reach *)
+      | _ -> assert false
+    end
+    (* An int *)
+    | LInt i -> begin match tdest with
+      (* To an float *)
+      | TFloat -> LFloat (Int32.to_float i)
+      (* Can't reach *)
+      | _ -> assert false
+    end
+    (* Can't reach *)
+    | _ -> assert false

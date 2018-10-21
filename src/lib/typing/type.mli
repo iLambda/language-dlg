@@ -28,3 +28,5 @@ val type_op_signature : operation -> type_func list
 val type_of_function : type_const -> type_const list -> type_func
 (* Returns the type of a literal *)
 val type_of_literal : literal -> type_const
+(* Casts a literal *)
+val type_cast_literal : type_const -> literal -> literal
