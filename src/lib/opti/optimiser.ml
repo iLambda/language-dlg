@@ -763,8 +763,6 @@ and optimise_instr instr = match instr with
                 None
               (* anything else *)
               | _ -> Some (PBinding (id, unknown_pos optexpr))
-
-
             end
         in
         (* optimise the pattern *)
