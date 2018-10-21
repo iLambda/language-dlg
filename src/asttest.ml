@@ -186,7 +186,7 @@ let main () =
   let lb = from_channel c in
   let ast = try DLG.Parser.program (DLG.Lexer.main false) lb
             with
-              |  Parsing.Parse_error -> Utils.Error.print_syntax_error_at c lb; exit 0
+              |  DLG.Parser.Error -> Utils.Error.print_syntax_error_at c lb; exit 0
             in
   let str = (string_of_program ast) ^ "\n" in
   print_string str;

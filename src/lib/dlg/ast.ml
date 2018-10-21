@@ -58,7 +58,7 @@ and expression =
   (* A variable  *)
   | EVar of scoped_identifier located
   (* An operation *)
-  | EOperation of operation located * expression located * expression located(*expression located list*)
+  | EOperation of operation located * expression located * expression located
   (* A ternary *)
   | ECondition of expression located * expression located * expression located
   (* A function call *)

@@ -91,7 +91,7 @@ let rec get_expr_type env branch = function
           (* Check arguments *)
           if not (type_list_is_same targs0 targs)
           then raise (make_located_type_error ReasonIncompatibleDeclaration arglist None [ TCFunc (tret, targs0) ]);
-          (* Check if type is void *)
+          (* Check if type is not void *)
           if type_is_same tret TVoid
           then raise (make_located_type_error ReasonNoProduceVoid nameid (Some (TCFunc (tret, targs0))) []);
           (* Return the type *)
@@ -156,9 +156,11 @@ let rec get_expr_type env branch = function
     let trhs = get_expr_type env branch (value rhs) in
     let tlhs = get_expr_type env branch (value lhs) in
     let top = value op in
+    (* Join the located tokens for error reporting *)
+    let tok = join_located lhs (join_located op rhs (fun x y -> x,y)) (fun x y -> x,y) in
     (* Check if the operation is valid *)
     if not (type_is_valid_op tlhs top trhs)
-    then raise (make_located_type_error ReasonInvalidTypeOp lhs (given tlhs) []);
+    then raise (make_located_type_error ReasonInvalidTypeOp tok (given tlhs) []);
     (* If any of them is unknown, return unknown*)
     if trhs = TUnknown || tlhs = TUnknown then TUnknown
     else

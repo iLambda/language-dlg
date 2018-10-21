@@ -124,7 +124,7 @@ let env_bind env branch id decl =
         | [] -> [branch, decl]
         (* crawl list, check if we found the right branch yet*)
         | (base, decl)::tail when base = branch -> (base, decl)::tail
-        | _::tail -> replace_branch tail
+        | d::tail -> d::(replace_branch tail)
       (* actually do it. set the new definition list *)
       in Hashtbl.add env id (replace_branch d)
 

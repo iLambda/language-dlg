@@ -110,6 +110,8 @@ let string_of_pos p =
     else
       Printf.sprintf "File \"%s\", line %d, characters %d-%d" filename l c1 c2
 
+(* let relocate from totok = with_pos (position from) totok *)
+
 let pos_or_undef = function
   | None -> dummy
   | Some x -> x
