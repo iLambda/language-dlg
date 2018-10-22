@@ -4,19 +4,19 @@ open Env
 (* the virtual machine *)
 type vm = {
   mutable program_counter: int64;
-  stack: data_stack;
+  stack: datastack;
   environment: env;
 }
 
 (* create a virtual machine in the default state *)
-let make () = {
+let vm_make () = {
   program_counter = 0L;
-  stack = Datastack.make ();
-  environment = Env.make ();
+  stack = datastack_make ();
+  environment = env_make ();
 }
 
 (* start the vm with bytecode coming from a file *)
-let run_from_file vm file =
+let vm_run_from_file vm file =
   (* Reset position *)
   seek_in file 0;
   (* Reset program counter *)

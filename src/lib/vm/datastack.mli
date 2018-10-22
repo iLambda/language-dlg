@@ -1,11 +1,11 @@
 open Data
 
 (* An element in the stack *)
-type data_stack_element =
+type datastack_element =
   | Value of value
 
 (* A vm stack *)
-type data_stack = data_stack_element Stack.t
+type datastack = datastack_element Stack.t
 
 (* Create an empty stack *)
-val make : unit -> data_stack
+val datastack_make : unit -> datastack

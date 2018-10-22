@@ -15,3 +15,7 @@
   (name optitest)
   (modules optitest)
   (libraries utils DLG typing optimiser))
+(executable
+  (name vmtest)
+  (modules vmtest)
+  (libraries utils DLG vm))

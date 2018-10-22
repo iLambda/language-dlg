@@ -13,7 +13,7 @@ type env = {
 }
 
 (* make an empty environment *)
-val make : unit -> env
+val env_make : unit -> env
 (* set a value *)
 val env_set : env -> scope -> identifier -> value -> unit
 (* set if the value is unset *)

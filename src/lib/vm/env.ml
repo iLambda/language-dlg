@@ -14,7 +14,7 @@ type env = {
 }
 
 (* make an empty environment *)
-let make () = {
+let env_make () = {
   local = Hashtbl.create 64;
   global = Hashtbl.create 64
 }
