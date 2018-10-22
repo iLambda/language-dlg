@@ -1,0 +1,11 @@
+B /home/ilambda/.opam/system/lib/ANSITerminal
+B /home/ilambda/.opam/system/lib/bytes
+B /usr/lib/ocaml
+B ../../../_build/default/src/lib/utils/.utils.objs
+B ../../../_build/default/src/lib/vm/.vm.objs
+S /home/ilambda/.opam/system/lib/ANSITerminal
+S /home/ilambda/.opam/system/lib/bytes
+S /usr/lib/ocaml
+S ../utils
+S .
+FLG -open Vm__ -w @a-4-29-40-41-42-44-45-48-58-59-60-40 -strict-sequence -strict-formats -short-paths -keep-locs
