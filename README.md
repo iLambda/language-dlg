@@ -29,15 +29,15 @@ $$ make
 
 ### Compiler optimisations
 
-The compiler yields optimisations that do not change the meaning of the program, but reduce the size of the bytecode (by reducing the size of the AST).
+The compiler yields **optimisations** that *do not change the meaning of the program*, but reduce the size of the bytecode (by reducing the size of the AST).
 
-#### Inside programs 
+#### Inside programs
 
 The followings optimisations are done by the compiler in a program :
 * a group of `nop` instructions will be collapsed into one
 * `wait` instructions with no event specified and a duration of 0 will be removed
 
-In conditions (`? expr` blocks) :
+The followings optimisations are done by the compiler in conditions (`? expr` blocks) :
 * Branches appearing after a wildcard pattern will be removed
   ```dlg
   ? Player.Stats.Charisma
@@ -73,12 +73,12 @@ In the DLG language, there are two type checking procedures at play when you com
 #### Static type checking
 
 In a DLG program, you can have two kinds of variables :
-* *script variables* that have a scope limited to the DLG interpreter :
+* **script variables** that have a scope limited to the DLG interpreter :
   ```dlg
   set local var x
   set global var x
   ```
-* *extern variables* that are accessing directly objects from your game :
+* **extern variables** that are accessing directly objects from your game :
   ```dlg
   set extern var x
   ```
@@ -145,8 +145,8 @@ instruction ::=
                 | send extern_id [expr]
                 | wait const_id then expr
               ; type checking
-                | declare global const_id
-                | declare extern const_id|extern_id
+                | declare global const_id type
+                | declare extern const_id|extern_id type [parameterstype]
 
 ; an expression
 expr ::=
@@ -164,6 +164,8 @@ expr ::=
          | expr ?= expr : expr
        ; an access over a constructed type
          | expr.[const_id]
+       ; a type cast
+         | (type)expr
 
 ; an infix operator
 infixop ::= + | - | * | / | && | || | = | != | <= | >= | < | >
@@ -203,6 +205,7 @@ literal ::=
 
 ; a type
 type ::= void | int | float | bool | string | vec2 | vec3 | enum(const_id)
+parameterstype = ([type {,type}])
 
 ; a message and the options
 message ::= "string" [{message_opt }]
