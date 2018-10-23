@@ -4,10 +4,12 @@ B /usr/lib/ocaml
 B ../_build/default/src/.asttest.eobjs
 B ../_build/default/src/.lextest.eobjs
 B ../_build/default/src/.optitest.eobjs
+B ../_build/default/src/.pcodetest.eobjs
 B ../_build/default/src/.typetest.eobjs
 B ../_build/default/src/.vmtest.eobjs
 B ../_build/default/src/lib/dlg/.DLG.objs
 B ../_build/default/src/lib/optimisation/.optimiser.objs
+B ../_build/default/src/lib/pcode/.pcode.objs
 B ../_build/default/src/lib/typing/.typing.objs
 B ../_build/default/src/lib/utils/.utils.objs
 B ../_build/default/src/lib/vm/.vm.objs
@@ -17,6 +19,7 @@ S /usr/lib/ocaml
 S .
 S lib/dlg
 S lib/optimisation
+S lib/pcode
 S lib/typing
 S lib/utils
 S lib/vm

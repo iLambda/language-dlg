@@ -16,6 +16,10 @@
   (modules optitest)
   (libraries utils DLG typing optimiser))
 (executable
+  (name pcodetest)
+  (modules pcodetest)
+  (libraries utils DLG typing optimiser pcode vm))
+(executable
   (name vmtest)
   (modules vmtest)
   (libraries utils DLG vm))
