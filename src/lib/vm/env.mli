@@ -1,9 +1,5 @@
 open Data
 
-(* An identifier *)
-type identifier = string
-(* A scope *)
-type scope = Local | Global
 (* A scoped environment *)
 type scoped_env = (identifier, value) Hashtbl.t
 (* An environment *)

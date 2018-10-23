@@ -22,6 +22,13 @@ let bool_to_buf value =
   Buffer.add_char buf (if value then '\xFF' else '\x00');
   buf
 
+
+(* Writes a string to a buffer and appends 0x00 *)
+let str_to_buf str =
+  let buf = Buffer.create ((String.length str) + 1) in
+  Buffer.add_string buf str;
+  buf
+
 (* Create a buffer from bytes *)
 let from_bytes bytes =
   (* Make the buffer *)
@@ -49,3 +56,15 @@ let byte_from_list bytelist =
   List.iteri (Bytes.set bytes) (List.map Char.chr bytelist);
   (* Return *)
   bytes
+
+(* Converts a buffer to a string *)
+let to_string buf =
+  Bytes.to_string (Buffer.to_bytes buf)
+
+(* Deconstruct a flag  *)
+let deconstruct_flag flag =
+  let rec deconstruct f n = match f with
+    | 0x00 -> []
+    | _ when (f mod 2) = 1 -> n::(deconstruct (f lsr 1) (n+1))
+    | _ -> (deconstruct (f lsr 1) (n+1))
+  in deconstruct flag 0

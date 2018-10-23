@@ -2,6 +2,9 @@
 type vm_error_reason =
   | VmUnboundVariable
   | VmUnexpectedEOP
+  | VmUnrecognizedDeclarator
+  | VmExternAccessUnsupported
+  | VmIllFormedProgram
 
 (* The payload of a vm error *)
 type vm_error = {
@@ -17,6 +20,9 @@ let string_of_vm_error error =
   let reason = match error.reason with
     | VmUnboundVariable -> "Variable unbound"
     | VmUnexpectedEOP -> "Unexpected end of program"
+    | VmUnrecognizedDeclarator -> "Declarator not recognized"
+    | VmExternAccessUnsupported -> "Extern access in this VM is not allowed"
+    | VmIllFormedProgram -> "The p-code is ill-formed"
   in
   (* the message *)
-  "Program error : " ^ reason
+  "Program error : " ^ reason ^ "\n"

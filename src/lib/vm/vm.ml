@@ -1,25 +1,35 @@
-open Datastack
-open Env
+open Error
+open Progbuf
+open Cpu
+open Io
+
+(* Error raised when the vm tries to do something not ok *)
+exception Vm_error of vm_error
 
 (* the virtual machine *)
 type vm = {
-  mutable program_counter: int64;
-  stack: datastack;
-  environment: env;
+  cpu: cpu;
+  io: io;
 }
 
 (* create a virtual machine in the default state *)
-let vm_make () = {
-  program_counter = 0L;
-  stack = datastack_make ();
-  environment = env_make ();
+let make () = {
+  cpu = cpu_make ();
+  io = io_make ();
 }
 
 (* start the vm with bytecode coming from a file *)
-let vm_run_from_file vm file =
-  (* Reset position *)
-  seek_in file 0;
-  (* Reset program counter *)
-  vm.program_counter <- 0L;
-  (* Reset local environment *)
-  env_clear vm.environment
+let run vm progbuf =
+  (* bind the progbuf to the cpu *)
+  cpu_bind vm.cpu progbuf;
+  (* run cpu *)
+  while not (progbuf.eof ()) do
+    (* run for one step *)
+    cpu_step vm.cpu vm.io
+  done
+
+(* create progbuf from file *)
+let progbuf_from_file file = Progbuf.progbuf_from_file file
+
+(* To string *)
+let string_of_error error = Error.string_of_vm_error error

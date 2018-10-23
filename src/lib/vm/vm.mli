@@ -1,15 +1,26 @@
-open Datastack
-open Env
+open Error
+open Progbuf
+open Cpu
+open Io
 
 (* the virtual machine *)
 type vm = {
-  mutable program_counter: int64;
-  stack: datastack;
-  environment: env;
+  cpu: cpu;
+  io: io;
 }
 
-(* create a virtual machine in the default state *)
-val vm_make : unit -> vm
+(* Error raised when the vm tries to do something not ok *)
+exception Vm_error of vm_error
 
-(* start the vm with bytecode coming from a file *)
-val vm_run_from_file : vm -> in_channel -> unit
+
+(* create a virtual machine in the default state *)
+val make : unit -> vm
+(* start the vm with the given progbuf *)
+val run : vm -> progbuf -> unit
+
+
+(* create progbuf from file *)
+val progbuf_from_file : in_channel -> progbuf
+
+(* Returns a string describing the vm error *)
+val string_of_error : vm_error -> string
