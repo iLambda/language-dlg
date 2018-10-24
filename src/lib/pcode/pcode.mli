@@ -18,6 +18,7 @@ type opcode =
   | OpcWait | OpcSpeed | OpcSend
   | OpcInvoke
   | OpcMessage of messageopt list
+  | OpcChoice
   (* Scoped identifier opcode *)
   | OpcIdentifier of scope
   (* Expressions opcodes *)

@@ -19,6 +19,7 @@ type opcode =
   | OpcWait| OpcSpeed | OpcSend
   | OpcInvoke
   | OpcMessage of messageopt list
+  | OpcChoice
   (* Scoped identifier opcode *)
   | OpcIdentifier of scope
   (* Expressions opcodes *)
@@ -75,40 +76,7 @@ and of_expression expr = match expr with
   (* A variable *)
   | EVar scopedid -> of_variable (value scopedid)
   (* A literal *)
-  | ELiteral literal ->
-    (* get the type *)
-    let t = Typing.Type.type_of_literal (value literal) in
-    (* Check the literal type *)
-    begin match (value literal) with
-      (* vectors push expressions first and constructor later *)
-      | LVec2 (x,y) -> concat [
-          of_expression (value y);
-          of_expression (value x);
-          (* the literal type *)
-          of_opcode (OpcLiteral t);
-        ]
-      | LVec3 (x,y,z) -> concat [
-          of_expression (value z);
-          of_expression (value y);
-          of_expression (value x);
-          (* the literal type *)
-          of_opcode (OpcLiteral t);
-        ]
-      (* Any other literal pushes constructor first and data later*)
-      | _ ->
-          concat [
-              (* the literal type *)
-              of_opcode (OpcLiteral t);
-              (* match the literal and send the data*)
-              match (value literal) with
-                | LInt i -> Utils.Buf.int32_to_buf i
-                | LFloat f -> Utils.Buf.float_to_buf f
-                | LBool b -> Utils.Buf.bool_to_buf b
-                | LString fstr -> of_fstring fstr;
-                | LEnum _ -> failwith "Enum literal not done yet"
-                | _ -> assert false
-            ]
-    end
+  | ELiteral literal -> of_literal (value literal)
   (* An operation *)
   | EOperation (op, lhs, rhs) -> concat [
       (* push operands *)
@@ -211,7 +179,77 @@ and of_instruction = function
         (of_opcode (OpcMessage (List.rev_map value opts)));
       ]
   (* A choice *)
-  | IChoice _ -> failwith "Unimplemented yet"
+  | IChoice choices ->
+    (* compute the skip length *)
+    let skiplength = Buffer.length (of_opcode (OpcSkipIfNot (0L))) in
+    (* the number of choices *)
+    let choices_num = List.length choices in
+    (* get the p-code of all strings in the choice *)
+    let pcode_choices_str = concat (List.rev_map (fun c -> of_fstring (value (fst c))) choices) in
+    (* the the pcode of a choice *)
+    let of_choice choice i isfirst =
+      (* destruct *)
+      let _, prog = choice in
+      (* the pcode of the program *)
+      let subprogram_pcode = of_program (value prog) in
+      (* Generate the p-code *)
+      let pcodes = [
+        (* checked id is previously on top of stack *)
+        (* test equality with current choice *)
+        of_literal (LInt i);
+        of_opcode (OpcOperation OpEqual);
+        (* if false, skip the program and the (goto end) *)
+        of_opcode (OpcSkipIfNot (Int64.of_int ((Buffer.length subprogram_pcode) + skiplength + 2)));
+          (* deepen the scope *)
+          of_opcode (OpcDeepenScope);
+          (* the program (skipped if false )*)
+          subprogram_pcode;
+          (* raise the scope *)
+          of_opcode (OpcRaiseScope);
+          (* goto end of condition, undefined for now (skipped in false )*)
+          of_opcode (OpcSkip (0L))
+      ] in
+      (* if needed, duplicate the argument *)
+      let pcode = if isfirst
+                  then concat ((of_opcode OpcDupl)::pcodes)
+                  else concat pcodes
+      (* Return the pcode AND the offset at which the skipcode is found *)
+      in (pcode, (Buffer.length pcode) - skiplength + 1)
+    in
+    (* takes a list of the p-code of each choice and their byte size,
+       in rev order, and modify the p-code in place *)
+    let rec list_of_choices acc sum i = function
+      | [] -> acc
+      | choice::t ->
+        (* deconstruct *)
+        let pcode, offset = of_choice choice (Int32.of_int i) (t=[]) in
+        (* compute len *)
+        let len = Buffer.length pcode in
+        (* to bytes *)
+        let pcodebytes = Buffer.to_bytes pcode in
+        (* compute the int64 buffer *)
+        let skiplenbuf = int64_to_buf (Int64.of_int sum) in
+        (* replace *)
+        let () = Buffer.blit skiplenbuf 0 pcodebytes offset 8 in
+        (* add code and size *)
+        list_of_choices ((from_bytes pcodebytes)::acc) (sum+len) (i-1) t
+    in
+    (* compute the modified pcodes *)
+    let pcode_choices = concat (list_of_choices [] 0 (choices_num - 1) (List.rev choices)) in
+    (* return the buffer *)
+    concat [
+      (* the text for the choices *)
+      pcode_choices_str;
+      (* the number of choices *)
+      of_literal (LInt (Int32.of_int choices_num));
+      (* the choice instruction : wait for user token *)
+      of_opcode OpcChoice;
+      (* the user will push an integer token on the stack here *)
+      (* memorize it *)
+      of_opcode OpcMem;
+      (* the choices *)
+      pcode_choices
+    ]
 
   (* A condition *)
   | ICondition (expr, branches) ->
@@ -252,7 +290,7 @@ and of_instruction = function
                       then concat ((of_opcode OpcDupl)::pcodes)
                       else concat pcodes
           (* Return the pcode AND the offset at which the skipcode is found *)
-          in (pcode, Some ((Buffer.length pcode) - 8))
+          in (pcode, Some ((Buffer.length pcode) - skiplength + 1))
 
         (* A binding pattern*)
         | PBinding (id, expr) ->
@@ -284,7 +322,7 @@ and of_instruction = function
                       then concat ((of_opcode OpcDupl)::pcodes)
                       else concat pcodes
           (* Return the pcode AND the offset at which the skipcode is found *)
-          in (pcode, Some ((Buffer.length pcode) - 8 - 1 (* size of OPC_RAISE_SCOPE*)))
+          in (pcode, Some ((Buffer.length pcode) - skiplength + 1 - 1 (* size of OPC_RAISE_SCOPE*)))
       end
     in
     (* compute the code of all branches *)
@@ -379,6 +417,40 @@ and of_instruction = function
   (* A declare command *)
   | IDeclare _ -> failwith "Unimplemented yet"
 
+and of_literal literal =
+    (* get the type *)
+    let t = Typing.Type.type_of_literal literal in
+    (* Check the literal type *)
+    match literal with
+      (* vectors push expressions first and constructor later *)
+      | LVec2 (x,y) -> concat [
+          of_expression (value y);
+          of_expression (value x);
+          (* the literal type *)
+          of_opcode (OpcLiteral t);
+        ]
+      | LVec3 (x,y,z) -> concat [
+          of_expression (value z);
+          of_expression (value y);
+          of_expression (value x);
+          (* the literal type *)
+          of_opcode (OpcLiteral t);
+        ]
+      (* Any other literal pushes constructor first and data later*)
+      | _ ->
+          concat [
+              (* the literal type *)
+              of_opcode (OpcLiteral t);
+              (* match the literal and send the data*)
+              match literal with
+                | LInt i -> Utils.Buf.int32_to_buf i
+                | LFloat f -> Utils.Buf.float_to_buf f
+                | LBool b -> Utils.Buf.bool_to_buf b
+                | LString fstr -> of_fstring fstr;
+                | LEnum _ -> failwith "Enum literal not done yet"
+                | _ -> assert false
+            ]
+
 (* Returns the p-code of an opcode *)
 and of_opcode opcode =
   (* get a byte list *)
@@ -417,6 +489,7 @@ and of_opcode opcode =
     | OpcSpeed -> [ 0x25 ]
     | OpcInvoke -> [ 0x26 ]
     | OpcSend -> [ 0x27 ]
+    | OpcChoice -> [ 0x28 ]
     (* A nop *)
     | OpcNop -> [ 0x80 ]
 
