@@ -1,11 +1,22 @@
 open DLG.Ast
 
+(* A p-code*)
+type pcode
 (* An opcode for the outputted p-code *)
 type opcode =
   (* End of data *)
   | OpcEOD
+  (* Control flow *)
+  | OpcSkipIfNot of int64
+  | OpcSkip of int64
+  (* Stack&env management *)
+  | OpcMem
+  | OpcDupl
+  | OpcDeepenScope | OpcRaiseScope
   (* Instructions opcodes *)
-  | OpcSet | OpcIfnset
+  | OpcSet | OpcIfnset | OpcInit
+  | OpcWait | OpcSpeed | OpcSend
+  | OpcInvoke
   | OpcMessage of messageopt list
   (* Scoped identifier opcode *)
   | OpcIdentifier of scope
@@ -17,11 +28,12 @@ type opcode =
   | OpcTernary
   | OpcFunction
   | OpcCast of type_const
+  | OpcAccess
   (* A nop instruction *)
   | OpcNop
 
-(* A p-code*)
-type pcode
+(* Concat *)
+val concat : pcode list -> pcode
 
 (* Returns the p-code of a program *)
 val of_program : program -> pcode
@@ -33,26 +45,8 @@ val of_instruction : instruction -> pcode
 val of_scoped_identifier : scoped_identifier -> pcode
 (* Returns the p-code of a fstring *)
 val of_fstring : fstring -> pcode
-
 (* Returns the bytes making of an opcode *)
-val of_opcode : opcode-> bytes
+val of_opcode : opcode -> pcode
 
 (* Writes to an output channel *)
 val to_out : out_channel -> pcode -> unit
-
-(* Concat *)
-val concat : pcode list -> pcode
-
-(* Returns the p-code of an expression *)
-(* val of_expr : expression -> pcode *)
-(* Returns the p-code of a literal *)
-(* val of_literal : literal -> pcode *)
-(* Returns the p-code of a variable *)
-(* val of_var : scoped_identifier -> pcode *)
-(*
-(* Returns bytes from an opcode *)
-val bytes_of_opcode : opcode -> bytes
-(* Returns an array of bytes *)
-val to_bytes : pcode -> bytes
-(* Writes to a file *)
-val to_file : string -> pcode -> unit *)

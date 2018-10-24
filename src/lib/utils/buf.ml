@@ -12,6 +12,20 @@ let int32_to_buf value =
   (* Return buffer *)
   buf
 
+(* Writes an int32 to a buffer *)
+let int64_to_buf value =
+  (* make a buffer *)
+  let buf = Buffer.create 8 in
+  (* loop eight times *)
+  for i = 0 to 7 do
+    (* get the nibble *)
+    let nibble = Int64.logand 255L (Int64.shift_right value (i * 8)) in
+    (* put in buffer *)
+    Buffer.add_char buf (Char.chr (Int64.to_int nibble));
+  done;
+  (* Return buffer *)
+  buf
+
 (* Writes a float to a buffer *)
 let float_to_buf value =
   int32_to_buf (Int32.bits_of_float value)
@@ -28,6 +42,15 @@ let str_to_buf str =
   let buf = Buffer.create ((String.length str) + 1) in
   Buffer.add_string buf str;
   buf
+
+
+(* Converts an int to a byte list *)
+let byte_list_of_int64 v =
+  (* Return the nibbles of i *)
+  List.map
+    (fun i -> Int64.to_int (Int64.logand 255L (Int64.shift_right v (i * 8))))
+    [0;1;2;3;4;5;6;7]
+
 
 (* Create a buffer from bytes *)
 let from_bytes bytes =
