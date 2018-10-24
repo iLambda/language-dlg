@@ -17,3 +17,5 @@ val io_make : unit -> io
 val io_send_message : io -> io_msg_options list -> string -> unit
 (* Set the speed *)
 val io_set_speed : io -> float -> unit
+(* A choice *)
+val io_ask_choice : io -> string list -> int

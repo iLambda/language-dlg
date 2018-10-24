@@ -5,6 +5,7 @@ type vm_error_reason =
   | VmUnrecognizedDeclarator
   | VmExternAccessUnsupported
   | VmIllFormedProgram
+  | VmMemEmpty
 
 (* The payload of a vm error *)
 type vm_error = {
@@ -23,6 +24,7 @@ let string_of_vm_error error =
     | VmUnrecognizedDeclarator -> "Declarator not recognized"
     | VmExternAccessUnsupported -> "Extern access in this VM is not allowed"
     | VmIllFormedProgram -> "The p-code is ill-formed"
+    | VmMemEmpty -> "Memory was empty"
   in
   (* the message *)
   "Program error : " ^ reason ^ "\n"
