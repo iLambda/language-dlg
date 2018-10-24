@@ -220,7 +220,7 @@ let rec check_instruction_type env branch = function
       (* Not empty *)
       | (msg, prog)::tail ->
         (* get and check the fstring *)
-        let fstr, _ = (value msg) in
+        let fstr = (value msg) in
         check_fstring_type env branch fstr;
         (* check the subprogram*)
         check_subprogram_type env (env_branch_child branch i) (value prog);

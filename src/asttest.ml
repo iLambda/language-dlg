@@ -38,7 +38,7 @@ and string_of_instruction instr = match instr with
   | IChoice choices ->
       let rec string_of_choices = (function
         | [] -> "\n"
-        | (msg, prog)::t -> let header = string_of_indent() ^ "-" ^ string_of_message (value msg) ^  "\n"
+        | (msg, prog)::t -> let header = string_of_indent() ^ "-" ^ string_of_fstring (value msg) ^  "\n"
                             in let prefix = (let () = indent() in string_of_program (value prog))
                             in let () = deindent()
                             in let rest = "\n" ^ (string_of_choices t)
@@ -186,7 +186,7 @@ let main () =
   let lb = from_channel c in
   let ast = try DLG.Parser.program (DLG.Lexer.main false) lb
             with
-              |  DLG.Parser.Error -> Utils.Error.print_syntax_error_at c lb; exit 0
+              |  DLG.Parser.Error -> Utils.Error.print_syntax_error_at c lb; exit 1
             in
   let str = (string_of_program ast) ^ "\n" in
   print_string str;

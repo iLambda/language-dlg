@@ -40,7 +40,7 @@ and instruction =
   (* A 'print message' instruction *)
   | IMessage of message located
   (* A choice *)
-  | IChoice of (message located * program located) list
+  | IChoice of (fstring located * program located) list
   (* A condition *)
   | ICondition of expression located * ((pattern located * program located) list)
   (* A function invoke *)

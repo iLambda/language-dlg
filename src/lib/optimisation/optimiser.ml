@@ -712,12 +712,12 @@ and optimise_instr instr = match instr with
     let optimise_choice choice =
       (* deconstruct *)
       let msg, prog = choice in
-      let fstr, opts = value msg in
+      let fstr = value msg in
       (* opimise fstring and program *)
       let optfstr = optimise_fstring fstr in
       let optprog = optimise_program (value prog) in
       (* return the choice optimised *)
-      (unknown_pos (optfstr, opts), unknown_pos optprog)
+      (unknown_pos optfstr, unknown_pos optprog)
     in
     (* Optimize each message and program *)
     [IChoice (List.map optimise_choice choices)]

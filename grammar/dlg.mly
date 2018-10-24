@@ -140,8 +140,8 @@ instruction:
   | KEYWORD_NOP
     { INop }
   (** a print message **)
-  | msg = located(message)
-    { IMessage msg }
+  | msgopts = located(pair(message, list(located(messageopt))))
+    { IMessage msgopts }
   (** a choice **)
   | OPERATOR_CHOICE INDENT options=list(choice) OUTDENT
     { IChoice(options) }
@@ -340,17 +340,9 @@ number:
 (* Messages & options*)
 message:
   | OPERATOR_MESSAGE OPERATOR_MESSAGE
-    { ([], []) }
+    { [] }
   | OPERATOR_MESSAGE str=stringcontents OPERATOR_MESSAGE
-    { (str, []) }
-  | OPERATOR_MESSAGE str=stringcontents OPERATOR_MESSAGE opts=messageopts
-    { (str, opts) }
-
-messageopts:
-  | opt = located(messageopt)
-    { [opt] }
-  | opt = located(messageopt) opts=messageopts
-    { opt::opts }
+    { str }
 
 messageopt:
   | KEYWORD_NORUSH
