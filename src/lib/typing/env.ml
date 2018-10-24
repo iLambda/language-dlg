@@ -108,7 +108,7 @@ let env_bind env branch id decl =
   (* try find branch*)
   match Hashtbl.find_opt env id with
     (* not found, means no definition. define *)
-    | None -> Hashtbl.add env id [branch, decl]
+    | None -> Hashtbl.replace env id [branch, decl]
     (* found. append *)
     | Some d ->
       (* try see if there is a conflictual declaration *)
@@ -126,7 +126,7 @@ let env_bind env branch id decl =
         | (base, decl)::tail when base = branch -> (base, decl)::tail
         | d::tail -> d::(replace_branch tail)
       (* actually do it. set the new definition list *)
-      in Hashtbl.add env id (replace_branch d)
+      in Hashtbl.replace env id (replace_branch d)
 
 (* Returns true iff the scoped identifier is extern *)
 let scoped_id_is_extern = function
