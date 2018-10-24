@@ -46,6 +46,15 @@ let concat pcodes = match pcodes with
 
 (* Returns the p-code of a program *)
 let rec of_program program =
+  (* Compute the p_code *)
+  let pcode = of_subprogram program in
+  (* Collect the GC. Woohoo *)
+  Gc.compact ();
+  (* Return the p-code *)
+  pcode
+
+(* Returns the p-code of a subprogram *)
+and of_subprogram program =
   (* the current program insctruction and the rest of the program *)
   let program_instr = ref INop in
   let program_left = ref program in
@@ -191,7 +200,7 @@ and of_instruction = function
       (* destruct *)
       let _, prog = choice in
       (* the pcode of the program *)
-      let subprogram_pcode = of_program (value prog) in
+      let subprogram_pcode = of_subprogram (value prog) in
       (* Generate the p-code *)
       let pcodes = [
         (* checked id is previously on top of stack *)
@@ -262,11 +271,11 @@ and of_instruction = function
       (* match over pattern type*)
       begin match pattern with
         (* A wildcard, just the program *)
-        | PWildcard -> (of_program prog, None)
+        | PWildcard -> (of_subprogram prog, None)
         (* A value : generate the expression *)
         | PValue expr ->
           (* the pcode of the program *)
-          let subprogram_pcode = of_program prog in
+          let subprogram_pcode = of_subprogram prog in
           (* Generate the p-code *)
           let pcodes = [
             (* matched value is previously on top of stack *)
@@ -295,7 +304,7 @@ and of_instruction = function
         (* A binding pattern*)
         | PBinding (id, expr) ->
           (* the pcode of the program *)
-          let subprogram_pcode = of_program prog in
+          let subprogram_pcode = of_subprogram prog in
           (* Generate the p-code *)
           let pcodes = [
             (* matched value is previously on top of stack *)
