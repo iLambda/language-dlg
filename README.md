@@ -136,7 +136,7 @@ Endianness of additional data is stored in little-endian.
 
 
 | name | opcode  | additional data | effect | category |
-| --- | --- | --- | --- | --- | --- |
+| --- | --- | --- | --- | --- |
 | EOD | 0x00 | None | Indicates the end of some data (usually a string) | Special markers |
 | MEM | 0x01 | None | Copies the token from the top of the stack in memory  | Stack management |
 | DUPL  | 0x02 | None  | Duplicate the token in memory and push it on the stack | Stack management |
@@ -146,14 +146,14 @@ Endianness of additional data is stored in little-endian.
 #### Control flow
 
 | name | opcode  | additional data | effect |
-|---|---|---|---|---|---|
+|---|---|---|---|
 | Skip if not | 0x05 | n=**int64** (8 bytes) | Pulls a token from the stack. If this is a boolean valued at `false`, skip *n* bytes of program |
 | Skip | 0x06 | n=**int64** (8 bytes) | Skips *n* bytes of program |
 
 #### Instructions
 
 | name | opcode  | additional data | effect |
-|---|---|---|---|---|---|
+|---|---|---|---|
 | Set | 0x20 | None | Pulls an identifier, and a value from the stack, and bind the value to the identifier in the environment |
 | Ifnset | 0x21 | None | Pulls an identifier, and a value from the stack, and bind the value to the identifier in the environment if and only if the variable was never bound |
 | Init | 0x22 | None | Pulls an identifier, and a value from the stack, and bind the value to the identifier in the environment if and only if the variable was never bound. Fail if identifier was already bound |
@@ -181,7 +181,7 @@ When `0x20` is reached, two tokens are pulled from the stack. If they are respec
 #### Identifiers
 
 | name | opcode  | additional data | effect |
-|---|---|---|---|---|---|
+|---|---|---|---|
 | Extern identifier | 0x60 | Null-terminated string representing identifier's name | An extern identifier |
 | Global identifier | 0x61 | Null-terminated string representing identifier's name | A global identifier |
 | Local identifier | 0x62 | Null-terminated string representing identifier's name | A local identifier |
@@ -201,7 +201,7 @@ _______________________________________________   __________________________
 #### Expressions
 
 | name | opcode  | additional data | effect |
-|---|---|---|---|---|---|
+|---|---|---|---|
 | Extern variable | 0x81 | Null-terminated string representing identifier's name | Access to an extern (not contained in the environment) variable |
 | Global variable | 0x82 | Null-terminated string representing identifier's name | Access to a global (shared between all scripts) variable |
 | Local variable | 0x83 | Null-terminated string representing identifier's name | Access to a local (accessible only in this script) variable |
