@@ -48,6 +48,7 @@ The followings optimisations are done by the compiler in conditions (`? expr` bl
     -> n when n = 0 ; this branch will be unused, hence removed
       nop
   ```
+
 * Unreachable branches will be removed
 * If there is only one branch in a condition corresponding to a wildcard pattern or an all-capturing expression (`->n when true`), the condition testing will be ignored
 
