@@ -81,7 +81,7 @@ let io_ask_choice io choices =
     (fun i s -> io_write io ("(" ^ (string_of_int (i+1)) ^  ") " ^ s ^ "\n"))
     choices;
   (* The response *)
-  let chosen = ((io_get_int 1 (List.length choices))) in
+  let chosen = (io_get_int 1 ((List.length choices) + 1)) - 1 in
   (* newline *)
   print_newline();
   chosen
