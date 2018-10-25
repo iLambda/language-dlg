@@ -22,7 +22,8 @@ let main () =
                 | Typing.Error.Type_error e -> Typing.Error.print_type_error_at e (Some c); exit 1
                in
   (* Create the p-code *)
-  let pcode = Pcode.of_program ast in
+  let optiast = Optimiser.optimise_program ast in
+  let pcode = Pcode.of_program optiast in
   (* Send into file *)
   let outfile = open_out_gen [Open_wronly; Open_creat; Open_trunc; Open_binary] 777 Sys.argv.(2) in
   Pcode.to_out outfile pcode;
