@@ -141,8 +141,8 @@ Endianness of additional data is stored in little-endian.
 | name | opcode  | additional data | effect | category |
 | --- | --- | --- | --- | --- |
 | EOD | 0x00 | None | Indicates the end of some data (usually a string) | Special markers |
-| MEM | 0x01 | None | Copies the token from the top of the stack in memory  | Stack management |
-| DUPL  | 0x02 | None  | Duplicate the token in memory and push it on the stack | Stack management |
+| MEM | 0x01 | None | Copies the token from the top of the stack in memory  | Memory management |
+| DUPL  | 0x02 | None  | Duplicate the token in memory and push it on the stack | Memory management |
 | Deepen Scope  | 0x03 | None | Deepens the scope. The variables declared after this statement will be only accessible in this scope level block | Stack management |
 | Raise Scope  | 0x04 | None | Raises the scope. The variables created at the previous scope level will be destroyed | Stack management |
 
