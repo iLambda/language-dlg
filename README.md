@@ -239,7 +239,7 @@ _______________________________________________   __________________________
 ### Dynamic type checking
 
 When an operation/instruction pulls data (value of identifier) from the stack, two things can happen :
-  * *the stack is empty*, meaning the program is ill formed. There is a one to one correspondance between RPN, here the bytecode, and a syntax tree. If the stack is popped while empty, it means there is a broken branch in the implied AST.
+  * *the stack is empty*, meaning the program is ill formed. There is a one to one correspondance between RPN (reverse polish notation, which is the form that the bytecode takes) and a syntax tree. If the stack is popped while empty, it means there is a broken branch in the implied AST.
 
   * *the popped token is not of the right type*; it means the program is badly typed. An accurate error should be reported.
 
