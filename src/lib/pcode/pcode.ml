@@ -479,8 +479,8 @@ and of_opcode opcode =
     | OpcDeepenScope -> [0x03]
     | OpcRaiseScope -> [0x04]
      (* Control flow *)
-    | OpcSkipIfNot s -> 0x05::(byte_list_of_int64 s)
-    | OpcSkip s -> 0x06::(byte_list_of_int64 s)
+    | OpcSkipIfNot s -> 0x10::(byte_list_of_int64 s)
+    | OpcSkip s -> 0x11::(byte_list_of_int64 s)
     (*
      * INSTRUCTIONS
      *)

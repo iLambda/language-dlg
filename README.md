@@ -151,8 +151,8 @@ Endianness of additional data is stored in little-endian.
 
 | name | opcode  | additional data | effect |
 |---|---|---|---|
-| Skip if not | 0x05 | n=**int64** (8 bytes) | Pulls a token from the stack. If this is a boolean valued at `false`, skip *n* bytes of program |
-| Skip | 0x06 | n=**int64** (8 bytes) | Skips *n* bytes of program |
+| Skip if not | 0x10 | n=**int64** (8 bytes) | Pulls a token from the stack. If this is a boolean valued at `false`, skip *n* bytes of program |
+| Skip | 0x11 | n=**int64** (8 bytes) | Skips *n* bytes of program |
 
 #### Instructions
 

@@ -211,7 +211,7 @@ let parse_command cpu progbuf = match int_of_char (progbuf.next ()) with
   | 0x01 -> cpu_mem cpu (Stack.top cpu.stack)
   | 0x02 -> cpu_dupl cpu
   | 0x03 | 0x04 -> ()
-  | 0x05 ->
+  | 0x10 ->
     (* get the amount to jump *)
     let jumpamount = ref 0L in
     for i=0 to 7 do
@@ -229,7 +229,7 @@ let parse_command cpu progbuf = match int_of_char (progbuf.next ()) with
       | _ -> failwith "Not implemented"
     end
 
-  | 0x06 ->
+  | 0x11 ->
     (* get the amount to jump *)
     let jumpamount = ref 0L in
     for i=0 to 7 do
@@ -252,7 +252,7 @@ let cpu_step cpu io =
   (* peek at top *)
   in begin match int_of_char (progbuf.peek ()) with
     (* A special op *)
-    | n when n < 0x10 -> parse_command cpu progbuf
+    | n when n < 0x20 -> parse_command cpu progbuf
     (* A nop *)
     | n when n = 0x80 -> ignore (progbuf.next ())
     (* An instruction *)
