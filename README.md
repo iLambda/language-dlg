@@ -161,7 +161,7 @@ Endianness of additional data is stored in little-endian.
 | Set | 0x20 | None | Pulls an identifier, and a value from the stack, and bind the value to the identifier in the environment |
 | Ifnset | 0x21 | None | Pulls an identifier, and a value from the stack, and bind the value to the identifier in the environment if and only if the variable was never bound |
 | Init | 0x22 | None | Pulls an identifier, and a value from the stack, and bind the value to the identifier in the environment if and only if the variable was never bound. Fail if identifier was already bound |
-| Message | 0x23 | f=**flags** (1 byte) | Pulls a string value from the stack and display it |
+| Message | 0x23 | f=**msg_flags** (1 byte) | Pulls a string value from the stack and display it |
 | Wait | 0x24 | None |  |
 | Speed | 0x25 | None |  |
 | Invoke | 0x26 | None |  |
@@ -235,6 +235,18 @@ _______________________________________________   __________________________
 | Function call | 0xA2 | None | For a function with n arguments, pull an external identifier, n values from the stack, and pushes the result value |
 | Cast | 0xA3 | 1 byte representing the type to cast to (equal to the corresponding literal instruction between 0x90 and 0x96) | Pulls a value from the stack, converts it to type, and pushes it on the stack |
 | Access | 0xA4 | None | Pulls a value from the stack, and try to access one of its properties (usually x, y or z in case of vectors) |
+
+#### Flags
+
+There are different flags used in the additional data for some opcodes (for instance, in Message). Here is the list of the flags available.
+
+##### Message options
+
+| name | bit value  | flag value | effect |
+|---|---|---|---|
+| norush | 0 | 0x01 | Indicates that the user cannot fast-forward to end of message by pressing a key
+| noack | 1 | 0x02 | Indicates that once displayed, the message will not wait for a keypress in order to read the next instruction
+
 
 ### Dynamic type checking
 
