@@ -423,8 +423,8 @@ and of_instruction = function
         ]
     )
 
-  (* A declare command *)
-  | IDeclare _ -> failwith "Unimplemented yet"
+  (* A declare command : ignore for now *)
+  | IDeclare _ -> Buffer.create 1
 
 and of_literal literal =
     (* get the type *)
