@@ -21,6 +21,21 @@ let io_get_1_char () =
     Unix.tcsetattr Unix.stdin Unix.TCSADRAIN termio;
     res
 
+(* Get an int until it is right *)
+let rec io_get_int mini maxi =
+  print_string " ?  ";
+  (* print *)
+  let possible_int = read_line () in
+  (* try match *)
+  match int_of_string possible_int with
+    | exception Failure _ ->
+      (* go back on track *)
+      io_get_int mini maxi
+    | v when v >= mini && v < maxi -> v
+    | _ ->
+      (* go back on track *)
+      io_get_int mini maxi
+
 (* Write text char per char *)
 let io_write io str =
   (* read each char *)
@@ -65,10 +80,8 @@ let io_ask_choice io choices =
   List.iteri
     (fun i s -> io_write io ("(" ^ (string_of_int (i+1)) ^  ") " ^ s ^ "\n"))
     choices;
-  (* Ask choice *)
-  print_string " ?  ";
   (* The response *)
-  let chosen = (read_int () - 1) in
+  let chosen = ((io_get_int 1 (List.length choices))) in
   (* newline *)
   print_newline();
   chosen
