@@ -237,3 +237,12 @@ _______________________________________________   __________________________
 | Access | 0xA4 | None | Pulls a value from the stack, and try to access one of its properties (usually x, y or z in case of vectors) |
 
 ### Dynamic type checking
+
+When an operation/instruction pulls data (value of identifier) from the stack, two things can happen :
+  * *the stack is empty*, meaning the program is ill formed. There is a one to one correspondance between RPN, here the bytecode, and a syntax tree. If the stack is popped while empty, it means there is a broken branch in the implied AST.
+
+  * *the popped token is not of the right type*; it means the program is badly typed. An accurate error should be reported.
+
+  The static type checker will try to catch all the badly typed programs it can, but since some data can come from external sources (outside of the DLG environment), asserting that the typing is correct cannot be fully asserted at compile-time, and has to be caught at runtime.
+
+  To give more information to the static type checker, use `declare` instructions.
