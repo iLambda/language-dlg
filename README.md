@@ -115,7 +115,10 @@ Whenever an expression is left unchecked by the static compiler, it will be type
 
 ## Interpreter
 
-DLG files are then compiled into bytecode. A DLG interpreter has three big parts :
+The **interpreter** is an interface in a given programming language that implements all semantic functions of the language and a bytecode interpreter, which allows a programmer to virtually run the DLG language everywhere. DLG files (\*.dlg) are then compiled into DLGP bytecode (\*.dlgp).
+
+A DLG interpreter has four big parts :
+
 * a **stack**, where data, instructions and commands will be pushed
 * an **environment**, used to store all the variables and their scope, be they global or local
 * a **memory case** containing one value that can be memorized (MEM) from the top of the stack or duplicated and pushed on top of the stack (DUPL)
@@ -233,6 +236,3 @@ _______________________________________________   __________________________
 | Access | 0xA4 | None | Pulls a value from the stack, and try to access one of its properties (usually x, y or z in case of vectors) |
 
 ### Dynamic type checking
-
-
-The **interpreter** is an interface in a given programming language that implements all semantic functions of the language and a bytecode interpreter, which allows a programmer to virtually run the DLG language everywhere.
