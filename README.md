@@ -134,8 +134,9 @@ Endianness of additional data is stored in little-endian.
 
 #### Stack & environment management
 
+
 | name | opcode  | additional data | effect | category |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | EOD | 0x00 | None | Indicates the end of some data (usually a string) | Special markers |
 | MEM | 0x01 | None | Copies the token from the top of the stack in memory  | Stack management |
 | DUPL  | 0x02 | None  | Duplicate the token in memory and push it on the stack | Stack management |
