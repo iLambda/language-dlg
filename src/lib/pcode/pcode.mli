@@ -19,6 +19,7 @@ type opcode =
   | OpcInvoke
   | OpcMessage of messageopt list
   | OpcChoice
+  | OpcGoto | OpcLabel
   (* Scoped identifier opcode *)
   | OpcIdentifier of scope
   (* Expressions opcodes *)
@@ -39,7 +40,7 @@ val concat : pcode list -> pcode
 (* Returns the p-code of a program *)
 val of_program : program -> pcode
 (* Returns the p_code of an expression*)
-val of_expression : expression -> pcode
+(* val of_expression : expression -> pcode
 (* Returns the p-code of an instruction *)
 val of_instruction : instruction -> pcode
 (* Returns the p-code of a scoped identifeir *)
@@ -47,7 +48,7 @@ val of_scoped_identifier : scoped_identifier -> pcode
 (* Returns the p-code of a fstring *)
 val of_fstring : fstring -> pcode
 (* Returns the bytes making of an opcode *)
-val of_opcode : opcode -> pcode
+val of_opcode : opcode -> pcode *)
 
 (* Writes to an output channel *)
 val to_out : out_channel -> pcode -> unit

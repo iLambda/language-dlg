@@ -20,6 +20,7 @@ type opcode =
   | OpcInvoke
   | OpcMessage of messageopt list
   | OpcChoice
+  | OpcGoto | OpcLabel
   (* Scoped identifier opcode *)
   | OpcIdentifier of scope
   (* Expressions opcodes *)
@@ -134,9 +135,19 @@ and of_instruction = function
   (* A nop instruction *)
   | INop -> of_opcode OpcNop
   (* A goto instruction *)
-  | IGoto _ -> failwith "Unimplemented yet"
+  | IGoto id -> concat [
+      (* the scoped identifier*)
+      of_scoped_identifier (SLocal, value id);
+      (* the opcode*)
+      (of_opcode OpcGoto);
+    ]
   (* A label instruction *)
-  | ILabel _ -> failwith "Unimplemented yet"
+  | ILabel id -> concat [
+      (* the scoped identifier*)
+      of_scoped_identifier (SLocal, value id);
+      (* the opcode*)
+      (of_opcode OpcLabel);
+    ]
   (* A variable set *)
   | ISet (scopedid, expr) -> concat [
       (* the expression *)
@@ -499,6 +510,8 @@ and of_opcode opcode =
     | OpcInvoke -> [ 0x26 ]
     | OpcSend -> [ 0x27 ]
     | OpcChoice -> [ 0x28 ]
+    | OpcGoto -> [ 0x29 ]
+    | OpcLabel -> [ 0x30 ]
     (* A nop *)
     | OpcNop -> [ 0x80 ]
 
