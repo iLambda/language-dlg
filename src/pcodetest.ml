@@ -23,13 +23,13 @@ let main () =
                in
   (* Create the p-code *)
   let optiast = Optimiser.optimise_program ast in
-  let pcode = Pcode.of_program optiast in
+  let pcode = Compilation.Compiler.compile optiast in
   (* Send into file *)
   let outfile = open_out_gen [Open_wronly; Open_creat; Open_trunc; Open_binary] 777 Sys.argv.(2) in
-  Pcode.to_out outfile pcode;
+  Compilation.Pcode.to_out outfile pcode;
   close_out outfile;
   (* Log no type error, and quit *)
-  Pcode.to_out stdout pcode;
+  Compilation.Pcode.to_out stdout pcode;
   close_in c
 
 (* Print the uncaught exceptions *)
