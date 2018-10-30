@@ -17,6 +17,9 @@ type opcode =
   (* Control flow *)
   | OpcSkipIfNot of int64
   | OpcSkip of int64
+  (* Jump tables *)
+  | OpcJump of int32 * int64
+  | OpcJumpTableEnd
   (* Stack management *)
   | OpcMem
   | OpcDupl
@@ -32,8 +35,9 @@ type opcode =
   | OpcSpeed
   | OpcSend
   | OpcChoice
-  | OpcGoto of identifier
-  | OpcLabel of identifier
+  | OpcGotoId of identifier
+  | OpcLabelId of identifier
+  | OpcGoto of int32
   (* Expressions *)
   | OpcVariable
   | OpcOperation of operation
@@ -70,9 +74,11 @@ let identifier_to_buffer buf = function
 let length pcode = Int64.of_int (Dlist.length pcode)
 (* Return the nth instruction *)
 let nth (pcode:pcode) n = Dlist.nth_exn pcode (Int64.to_int n)
+(* Iterate the pcode *)
+let iter (pcode:pcode) f = Dlist.iter pcode ~f:f
 
 (* Return the byte sequence for a given opcode *)
-let byte_sequence_of_opcode = function
+let rec byte_sequence_of_opcode = function
   (* end of data *)
   | OpcEOD -> Buf.byte_from_list [0x00]
   (*
@@ -106,8 +112,13 @@ let byte_sequence_of_opcode = function
   | OpcInvoke -> Buf.byte_from_list [ 0x26 ]
   | OpcSend -> Buf.byte_from_list [ 0x27 ]
   | OpcChoice -> Buf.byte_from_list [ 0x28 ]
-  | OpcGoto _ -> Buf.byte_from_list [ 0x29 ]
-  | OpcLabel _ -> Buf.byte_from_list [ 0x2A ]
+  | OpcGotoId _ -> byte_sequence_of_opcode (OpcGoto (-1l))
+  | OpcGoto l ->
+    (* convert int to buffer *)
+    let buffer = Utils.Buf.int32_to_buf l in
+    (* return *)
+    Bytes.cat (Buf.byte_from_list [ 0x29 ]) (Buffer.to_bytes buffer)
+  | OpcLabelId _ -> byte_sequence_of_opcode (OpcNop)
   (* A nop *)
   | OpcNop -> Buf.byte_from_list [0x80]
 
@@ -202,6 +213,17 @@ let byte_sequence_of_opcode = function
       | _ -> raise (Pcode_error { reason=PcodeErrorSpecialTypeLiteralFound })
     end)
   | OpcAccess -> Buf.byte_from_list [ 0xA4 ]
+  (*
+   *  JUMP TABLES
+   *)
+   | OpcJump (depth, pos) ->
+     let depthbuf = Utils.Buf.int32_to_buf depth in
+     let posbuf = Utils.Buf.int64_to_buf pos in
+     (* concat *)
+     Buffer.add_buffer depthbuf posbuf;
+     (* return *)
+     Buffer.to_bytes depthbuf
+   | OpcJumpTableEnd -> Buf.byte_from_list [0xFF]
 
 (* Return the byte length of pcode *)
 let byte_length_of pcode =

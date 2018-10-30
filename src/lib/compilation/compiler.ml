@@ -1,14 +1,75 @@
 open DLG.Ast
+open Error
 open Utils.Position
 
+
+(* Build the jump table of the program *)
+let rec add_jump_table pcode =
+  (* the jump table *)
+  let jump_table = ref (Pcode.empty ()) in
+  (* the jump label lists  *)
+  let jump_label = Hashtbl.create 16 in
+  (* the scope depth counter *)
+  let scope_depth = ref 0l in
+  let label_fresh = ref 0l in
+  let current_count = ref 0L in
+  (* iterate through list, register each label and count scope *)
+  let pcode_register = function
+    (* check if opc is label, and count as a nop *)
+    | Pcode.OpcLabelId ident ->
+      (* bind it to table *)
+      Hashtbl.replace jump_label ident (!label_fresh, !scope_depth, !current_count);
+      (* add into jump table *)
+      jump_table := Pcode.concat [!jump_table; of_opcode (Pcode.OpcJump (!scope_depth, !current_count))];
+      (* make a fresh new label *)
+      label_fresh := Int32.succ (!label_fresh);
+      (* count *)
+      current_count := Int64.add (!current_count) (Pcode.byte_length_of (of_opcode Pcode.OpcNop));
+    (* check if opc is goto, and count as a labeled goto instead of identified *)
+    | Pcode.OpcGotoId _ ->
+      (* count *)
+      current_count := Int64.add (!current_count) (Pcode.byte_length_of (of_opcode (Pcode.OpcGoto 0l)));
+    (* else *)
+    | opc ->
+      (* measure depth *)
+      if opc = Pcode.OpcDeepenScope then scope_depth := Int32.succ !scope_depth;
+      if opc = Pcode.OpcRaiseScope then scope_depth := Int32.pred !scope_depth;
+      (* count *)
+      current_count := Int64.add (!current_count) (Pcode.byte_length_of (of_opcode opc));
+  in
+  (* now replace the gotos; *)
+  let pcode_replace _ = function
+    (* check if opc is goto *)
+    | Pcode.OpcGotoId ident ->
+      (* try get definition in previously made table *)
+      let label, _, _ = match Hashtbl.find_opt jump_label ident with
+        | None -> raise (Compile_error { reason = CompileErrorGotoUnbound })
+        | Some d -> d
+      in
+      (* replace by a labeled goto *)
+      Pcode.OpcGoto label
+    (* check if opc is label, replace by nop *)
+    | Pcode.OpcLabelId _ -> Pcode.OpcNop
+    (* else, do nothing *)
+    | opc -> opc
+  in
+  (* iterate *)
+  Pcode.iter pcode pcode_register;
+  (* replace instrs *)
+  let pcode_edited = Pcode.mapi pcode pcode_replace in
+  (* return the jump table *)
+  Pcode.concat [!jump_table; of_opcode (OpcJumpTableEnd); pcode_edited]
+
 (* Returns the p-code of a program *)
-let rec compile program =
+and compile program =
   (* Compute the p_code *)
   let pcode = of_subprogram program in
+  (* build the jump table *)
+  let pcode_with_jumptable = add_jump_table pcode in
   (* Collect the GC. Woohoo *)
   Gc.compact ();
   (* Return the p-code *)
-  pcode
+  pcode_with_jumptable
 
 (* Returns the p-code of a subprogram *)
 and of_subprogram program =
@@ -43,8 +104,8 @@ and of_instruction = function
   (* A nop *)
   | INop -> of_opcode OpcNop
   (* A goto/label *)
-  | IGoto id -> of_opcode (OpcGoto (value id))
-  | ILabel id -> of_opcode (OpcLabel (value id))
+  | IGoto id -> of_opcode (OpcGotoId (value id))
+  | ILabel id -> of_opcode (OpcLabelId (value id))
   (* A set/ifnset operation *)
   | ISet (sid, expr) -> Pcode.concat [
       of_expression (value expr);
@@ -245,6 +306,12 @@ and of_instruction = function
         | PBinding (id, expr) ->
           (* the pcode of the branch *)
           let branch_pcode = Pcode.concat [
+            (* deepen the scope to hide other variable definitions after *)
+            of_opcode (OpcDeepenScope);
+            (* define captured variable in deepened scope *)
+            of_opcode (OpcDupl);
+            of_opcode (OpcIdentifier (SLocal, (value id)));
+            of_opcode (OpcInit);
             (* the program (skipped if false )*)
             of_subprogram prog;
             (* raise the scope *)
@@ -254,27 +321,27 @@ and of_instruction = function
           ] in
           (* Generate the p-code *)
           let pcodes = [
-            (* matched value is previously on top of stack *)
             (* deepen the scope to hide other variable definitions after *)
             of_opcode (OpcDeepenScope);
+            (* matched value is previously on top of stack *)
             (* locally initialize the identifier to the matched value (will fail if already bound)*)
             of_opcode (OpcIdentifier (SLocal, (value id)));
             of_opcode (OpcInit);
             (* the when statement *)
             of_expression (value expr);
+            (* raise the scope *)
+            of_opcode (OpcRaiseScope);
             (* if false, skip the program and the goto end*)
             of_opcode (OpcSkipIfNot (Pcode.byte_length_of branch_pcode));
               (* the program *)
               branch_pcode;
-            (* raise the scope *)
-            of_opcode (OpcRaiseScope);
           ] in
           (* if needed, duplicate the argument *)
           let pcode = if not isfirst
                       then Pcode.concat ((of_opcode OpcDupl)::pcodes)
                       else Pcode.concat pcodes
           (* Return the pcode AND the offset at which the skipcode is found *)
-          in (pcode, Some (Int64.sub (Pcode.length pcode) 2L))
+          in (pcode, Some (Int64.sub (Pcode.length pcode) 1L))
       end
     in
     (* compute the code of all branches *)

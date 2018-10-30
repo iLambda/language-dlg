@@ -15,6 +15,9 @@ type opcode =
   (* Control flow *)
   | OpcSkipIfNot of int64
   | OpcSkip of int64
+  (* Jump tables *)
+  | OpcJump of int32 * int64
+  | OpcJumpTableEnd
   (* Stack management *)
   | OpcMem
   | OpcDupl
@@ -30,8 +33,9 @@ type opcode =
   | OpcSpeed
   | OpcSend
   | OpcChoice
-  | OpcGoto of identifier
-  | OpcLabel of identifier
+  | OpcGotoId of identifier
+  | OpcLabelId of identifier
+  | OpcGoto of int32
   (* Expressions *)
   | OpcVariable
   | OpcOperation of operation
@@ -60,6 +64,8 @@ val length : pcode -> int64
 val nth : pcode -> int64 -> opcode
 (* Maps the pcode *)
 val mapi : pcode -> (int -> opcode -> opcode) -> pcode
+(* Iterate the pcode *)
+val iter : pcode -> (opcode -> unit) -> unit
 
 (* Return the byte length of pcode *)
 val byte_length_of : pcode -> int64

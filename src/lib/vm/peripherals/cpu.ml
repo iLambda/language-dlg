@@ -10,6 +10,7 @@ type cpu = {
   stack: datastack;
   environment: env;
   mutable mem: data option;
+  mutable jumptable: (int32*int64) list option
 }
 
 (* Makes a cpu *)
@@ -18,10 +19,13 @@ let cpu_make () = {
   stack = datastack_make ();
   environment = env_make ();
   mem= None;
+  jumptable=None;
 }
 
 (* Bind a progbuf *)
 let cpu_bind cpu progbuf =
+  (* reset jumptable *)
+  cpu.jumptable <- None;
   cpu.progbuf <- Some progbuf
 
 (* push data in mem *)
@@ -242,6 +246,15 @@ let parse_command cpu progbuf = match int_of_char (progbuf.next ()) with
     progbuf.seek (Int64.add (progbuf.pos ()) !jumpamount)
   | v -> print_int v; assert false
 
+(* parse the jumptable *)
+let parse_jumptable cpu progbuf =
+  (* the read byte *)
+  let current = ref 0 in
+  (* read each byte till 0xFF *)
+  while (current := (int_of_char (progbuf.next ()))); !current <> 0xFF
+  do (); done;
+  (* table is built *)
+  cpu.jumptable <- Some []
 
 (* start the cpu *)
 let cpu_step cpu io =
@@ -249,8 +262,12 @@ let cpu_step cpu io =
   let progbuf = match cpu.progbuf with
     | None -> raise (Vm_error { reason = VmUnexpectedEOP })
     | Some p -> p
+  in
+
+  (* if jumptable not made, parse it *)
+  if cpu.jumptable = None then parse_jumptable cpu progbuf;
   (* peek at top *)
-  in begin match int_of_char (progbuf.peek ()) with
+  begin match int_of_char (progbuf.peek ()) with
     (* A special op *)
     | n when n < 0x20 -> parse_command cpu progbuf
     (* A nop *)

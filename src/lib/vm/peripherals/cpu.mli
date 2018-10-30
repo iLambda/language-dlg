@@ -9,6 +9,7 @@ type cpu = {
   stack: datastack;
   environment: env;
   mutable mem: data option;
+  mutable jumptable: (int32*int64) list option
 }
 
 (* Makes a cpu *)
