@@ -6,13 +6,15 @@ type scoped_env = (identifier, value) Hashtbl.t
 (* An environment *)
 type env = {
   local: scoped_env;
-  global: scoped_env
+  global: scoped_env;
+  mutable scope: int
 }
 
 (* make an empty environment *)
 let env_make () = {
   local = Hashtbl.create 64;
-  global = Hashtbl.create 64
+  global = Hashtbl.create 64;
+  scope = 0
 }
 
 
@@ -29,6 +31,13 @@ let env_wipe env =
 let env_scoped_hashtable env scope = match scope with
   | Local -> env.local
   | Global -> env.global
+
+(* Raises the scope *)
+let env_raise_scope env =
+  env.scope <- env.scope - 1
+(* Deepends the scope *)
+let env_deepen_scope env =
+  env.scope <- env.scope + 1
 
 (* set a value *)
 let env_set env scope id value =

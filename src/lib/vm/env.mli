@@ -5,7 +5,8 @@ type scoped_env = (identifier, value) Hashtbl.t
 (* An environment *)
 type env = {
   local: scoped_env;
-  global: scoped_env
+  global: scoped_env;
+  mutable scope: int
 }
 
 (* make an empty environment *)
@@ -20,3 +21,6 @@ val env_get : env -> scope -> identifier -> value
 val env_clear : env -> unit
 (* wipe all data *)
 val env_wipe : env -> unit
+(* raise/deepen scope *)
+val env_raise_scope : env -> unit
+val env_deepen_scope : env -> unit
