@@ -190,7 +190,7 @@ and of_instruction = function
       (* memorize it *)
       of_opcode OpcMem;
       (* the choices *)
-      pcode_choices
+      pcode_choices;
     ]
   (* A condition *)
   | ICondition (expr, branches) ->
@@ -201,7 +201,14 @@ and of_instruction = function
       (* match over pattern type*)
       begin match pattern with
         (* A wildcard, just the program *)
-        | PWildcard -> (of_subprogram prog, None)
+        | PWildcard -> (Pcode.concat [
+            (* deepen the scope *)
+            of_opcode (OpcDeepenScope);
+            (* the program*)
+            of_subprogram prog;
+            (* raise the scope *)
+            of_opcode (OpcRaiseScope);
+          ], None)
         (* A value : generate the expression *)
         | PValue expr ->
           (* the pcode of the branch *)
@@ -324,7 +331,7 @@ and of_instruction = function
       (* memorize it *)
       of_opcode OpcMem;
       (* the code of all branches *)
-      of_branches branches
+      of_branches branches;
     ]
 
 (* Returns the p_code of an expression *)
