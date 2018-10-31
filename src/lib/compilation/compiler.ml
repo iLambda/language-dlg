@@ -6,7 +6,7 @@ open Utils.Position
 (* Build the jump table of the program *)
 let rec add_jump_table pcode =
   (* the jump table *)
-  let jump_table = ref (Pcode.empty ()) in
+  let jump_table = ref [] in
   (* the jump label lists  *)
   let jump_label = Hashtbl.create 16 in
   (* the scope depth counter *)
@@ -20,7 +20,7 @@ let rec add_jump_table pcode =
       (* bind it to table *)
       Hashtbl.replace jump_label ident (!label_fresh, !scope_depth, !current_count);
       (* add into jump table *)
-      jump_table := Pcode.concat [!jump_table; of_opcode (Pcode.OpcJump (!scope_depth, !current_count))];
+      jump_table := ((!scope_depth, !current_count))::(!jump_table);
       (* make a fresh new label *)
       label_fresh := Int32.succ (!label_fresh);
       (* count *)
@@ -53,12 +53,29 @@ let rec add_jump_table pcode =
     (* else, do nothing *)
     | opc -> opc
   in
+  (* offset the jump-table indices (src is reversed) *)
+  let offset_jump_table offset (scope, count) =
+    of_opcode (Pcode.OpcJump (scope, (Int64.add count offset)))
+  in
+
   (* iterate *)
   Pcode.iter pcode pcode_register;
   (* replace instrs *)
   let pcode_edited = Pcode.mapi pcode pcode_replace in
+  (* the offset, assuming a jump opcode is of constant size (it is),
+     is the size of a jump*nbr_jumps + 1
+  *)
+  let jump_table_offset_bytes =
+    Int64.add
+      1L
+      (Int64.mul
+        (Pcode.byte_length_of (of_opcode (Pcode.OpcJump (0l, 0L))))
+        (Int64.of_int (List.length !jump_table)))
+  in
+  (* offset the jump table *)
+  let pcode_jump_table = Pcode.concat (List.rev_map (offset_jump_table jump_table_offset_bytes) !jump_table) in
   (* return the jump table *)
-  Pcode.concat [!jump_table; of_opcode (OpcJumpTableEnd); pcode_edited]
+  Pcode.concat [pcode_jump_table; of_opcode (OpcJumpTableEnd); pcode_edited]
 
 (* Returns the p-code of a program *)
 and compile program =
