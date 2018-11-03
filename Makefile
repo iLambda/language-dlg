@@ -1,13 +1,17 @@
 all: clean edit
 
-edit:	asttest lextest typetest
+edit:	dlgcompile dlgvm copy
 
-asttest:
-				cd ./src; dune build asttest.exe
-lextest:
-				cd ./src; dune build lextest.exe
-typetest:
-				cd ./src; dune build typetest.exe
+copy:
+				mkdir bin;
+				cp _build/default/src/dlgcompile.exe bin/dlgcompile
+				cp _build/default/src/dlgvm.exe bin/dlgvm
+
+dlgcompile:
+				cd ./src; dune build dlgcompile.exe
+dlgvm:
+				cd ./src; dune build dlgvm.exe
 
 clean:
+				rm -rf bin/;
 				dune clean

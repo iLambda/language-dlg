@@ -3,7 +3,7 @@ let sourcefilename = ref (None:string option)
 (* options *)
 let opt_print = ref false
 
-let usage = "usage: " ^ Sys.argv.(0) ^ " input.dlp [options]"
+let usage = "usage: " ^ Sys.argv.(0) ^ " script.dlp [options]"
 let speclist = [
     ("--stdout", Arg.Set opt_print, ": print the bytecode to stdout")
   ]
