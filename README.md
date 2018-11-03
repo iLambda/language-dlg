@@ -13,7 +13,7 @@ This project depends on the following modules :
 
 You can install them by typing :
 ```bash
-$$ opam install menhir dune ANSITerminal
+$$ opam install menhir dune ANSITerminal dlist
 ```
 
 You can build the project by going to the root folder and using :
