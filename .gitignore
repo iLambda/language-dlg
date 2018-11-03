@@ -7,3 +7,4 @@ bin
 *.o
 *.cmt
 TOASK
+*.dlgp
