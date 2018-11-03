@@ -3,3 +3,7 @@
   (name dlgcompile)
   (modules dlgcompile)
   (libraries utils DLG typing optimiser compilation))
+(executable
+  (name dlgvm)
+  (modules dlgvm)
+  (libraries utils DLG vm))
