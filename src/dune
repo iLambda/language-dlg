@@ -1,25 +1,5 @@
 (include_subdirs no)
 (executable
- (name typetest)
- (modules typetest)
- (libraries utils DLG typing))
-(executable
- (name asttest)
- (modules asttest)
- (libraries utils DLG typing))
-(executable
-  (name lextest)
-  (modules lextest)
-  (libraries utils DLG typing))
-(executable
-  (name optitest)
-  (modules optitest)
-  (libraries utils DLG typing optimiser))
-(executable
-  (name pcodetest)
-  (modules pcodetest)
-  (libraries utils DLG typing optimiser vm compilation))
-(executable
-  (name vmtest)
-  (modules vmtest)
-  (libraries utils DLG vm))
+  (name dlgcompile)
+  (modules dlgcompile)
+  (libraries utils DLG typing optimiser compilation))
