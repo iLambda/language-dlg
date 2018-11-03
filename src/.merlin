@@ -2,18 +2,12 @@ B /home/ilambda/.opam/system/lib/ANSITerminal
 B /home/ilambda/.opam/system/lib/bytes
 B /home/ilambda/.opam/system/lib/dlist
 B /usr/lib/ocaml
-B ../_build/default/src/.asttest.eobjs
-B ../_build/default/src/.lextest.eobjs
-B ../_build/default/src/.optitest.eobjs
-B ../_build/default/src/.pcodetest.eobjs
-B ../_build/default/src/.typetest.eobjs
-B ../_build/default/src/.vmtest.eobjs
+B ../_build/default/src/.dlgcompile.eobjs
 B ../_build/default/src/lib/compilation/.compilation.objs
 B ../_build/default/src/lib/dlg/.DLG.objs
 B ../_build/default/src/lib/optimisation/.optimiser.objs
 B ../_build/default/src/lib/typing/.typing.objs
 B ../_build/default/src/lib/utils/.utils.objs
-B ../_build/default/src/lib/vm/.vm.objs
 S /home/ilambda/.opam/system/lib/ANSITerminal
 S /home/ilambda/.opam/system/lib/bytes
 S /home/ilambda/.opam/system/lib/dlist
@@ -24,5 +18,4 @@ S lib/dlg
 S lib/optimisation
 S lib/typing
 S lib/utils
-S lib/vm
-FLG -w @a-4-29-40-41-42-44-45-48-58-59-60-40 -strict-sequence -strict-formats -short-paths -keep-locs -w @a-4-29-40-41-42-44-45-48-58-59-60-40 -strict-sequence -strict-formats -short-paths -keep-locs -w @a-4-29-40-41-42-44-45-48-58-59-60-40 -strict-sequence -strict-formats -short-paths -keep-locs -w @a-4-29-40-41-42-44-45-48-58-59-60-40 -strict-sequence -strict-formats -short-paths -keep-locs -w @a-4-29-40-41-42-44-45-48-58-59-60-40 -strict-sequence -strict-formats -short-paths -keep-locs -w @a-4-29-40-41-42-44-45-48-58-59-60-40 -strict-sequence -strict-formats -short-paths -keep-locs
+FLG -w @a-4-29-40-41-42-44-45-48-58-59-60-40 -strict-sequence -strict-formats -short-paths -keep-locs
