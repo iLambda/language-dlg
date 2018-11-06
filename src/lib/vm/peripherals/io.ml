@@ -245,7 +245,7 @@ let io_ask_choice io choices =
     >>= fun () -> LTerm.print " "
     (* Draw new *)
     >>= fun () -> LTerm.goto io.terminal { row=current; col=0 }
-    >>= fun () -> LTerm.print (string_of_int current)
+    >>= fun () -> LTerm.print ">"
     (* Get a mailbox element *)
     >>= fun () -> Lwt_mvar.take io.input
     (* Check its type *)
