@@ -51,7 +51,8 @@ let () =
 
       (* Check if print to stdout *)
       if !opt_print
-      then Compilation.Pcode.to_out stdout pcode;
+      then Compilation.Pcode.to_out stdout pcode
+      else print_string "Done !\n";
       (* Check if out destination *)
       match !destfilename with
         (* None; do nothing *)
