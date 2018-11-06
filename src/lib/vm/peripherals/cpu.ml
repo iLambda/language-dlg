@@ -4,6 +4,8 @@ open Env
 open Error
 open Io
 open Progbuf
+open Lwt
+open Alu
 
 type cpu = {
   mutable progbuf: progbuf option;
@@ -39,213 +41,6 @@ let cpu_dupl cpu =
     | None -> raise (Vm_error { reason = VmMemEmpty })
     | Some v -> Stack.push v cpu.stack
 
-(* parse an operator *)
-let parse_operation stack progbuf =
-  (* pass the operation declarator and get the op code *)
-  let opcode = ignore (progbuf.next ()); progbuf.next () in
-  (* match *)
-  match int_of_char (opcode) with
-    | 0x00 ->
-      (* pull two tokens *)
-      let x = Stack.pop stack in
-      let y = Stack.pop stack in
-      (* if they strings, concat (for the moment)*)
-      begin match x, y with
-        | Value (VString s1), Value (VString s2) -> Value (VString (s1 ^ s2))
-        | _ -> failwith "Not implemented"
-      end
-    | 0x06 ->
-      (* pull two tokens *)
-      let x = Stack.pop stack in
-      let y = Stack.pop stack in
-      (* if they values, compare*)
-      begin match x, y with
-        | Value v1, Value v2 -> Value (VBool (v1 = v2))
-        | _ -> failwith "Not implemented"
-      end
-    | _ -> failwith "Not implemented"
-
-(* parse an identifier in the progbuf *)
-let parse_identifier progbuf =
-  (* get the scope type *)
-  let scopetype = int_of_char (progbuf.next ()) in
-  (* create a buffer and storage for the current byte *)
-  let buf = Buffer.create 16 in
-  let curbyte = ref '\x00' in
-  (* fill it with incoming data*)
-  while curbyte := progbuf.next (); !curbyte <> '\x00'
-  do Buffer.add_char buf !curbyte
-  done;
-  (* get a scope *)
-  match scopetype with
-    (* can't use extern *)
-    | 0x60 -> raise (Vm_error { reason = VmExternAccessUnsupported })
-    (* global identifier *)
-    | 0x61 -> Identifier (Global, (Utils.Buf.to_string buf))
-    (* local identifier *)
-    | 0x62 -> Identifier (Local, (Utils.Buf.to_string buf))
-    (* Unrecognized *)
-    | _ -> raise (Vm_error { reason = VmUnrecognizedDeclarator })
-
-(* parse a literal *)
-let parse_value stack progbuf =
-  (* get the value type *)
-  let valuetype = int_of_char (progbuf.next ()) in
-  (* check the type of the value *)
-  match valuetype with
-    (* An int value *)
-    | 0x90 ->
-      (* a reference for the value *)
-      let intref = ref 0l in
-      for i=0 to 3 do
-        (* byte to int32 *)
-        let nibble = Int32.of_int (int_of_char (progbuf.next ())) in
-        (* add *)
-        intref := Int32.logor !intref (Int32.shift_left nibble (i*8));
-      done;
-      (* return *)
-      Value (VInt !intref)
-
-    (* An int value *)
-    | 0x91 ->
-      (* a reference for the value *)
-      let intref = ref 0l in
-      for i=0 to 3 do
-        (* byte to int32 *)
-        let nibble = Int32.of_int (int_of_char (progbuf.next ())) in
-        (* add *)
-        intref := Int32.logor !intref (Int32.shift_left nibble (i*8));
-      done;
-      (* return *)
-      Value (VFloat (Int32.float_of_bits !intref))
-
-    (* A bool value *)
-    | 0x92 ->
-      (* return *)
-      Value (VBool ((progbuf.next ()) <> '\x00'))
-
-    (* A string value *)
-    | 0x93 ->
-      (* create a buffer and storage for the current byte *)
-      let buf = Buffer.create 32 in
-      let curbyte = ref '\x00' in
-      (* fill it with incoming data*)
-      while curbyte := progbuf.next (); !curbyte <> '\x00'
-      do Buffer.add_char buf !curbyte
-      done;
-      (* Return a string value *)
-      Value (VString (Utils.Buf.to_string buf))
-
-    (* A vector 2 value *)
-    | 0x95 ->
-      (* pull two elements from stack *)
-      let x = Stack.pop stack in
-      let y = Stack.pop stack in
-      (* check if they're floats (or ints for that matter) *)
-      begin match x, y with
-        | Value (VFloat fx), Value (VFloat fy) -> Value (VVec2 (fx, fy))
-        | Value (VInt fx), Value (VFloat fy) -> Value (VVec2 (Int32.to_float fx, fy))
-        | Value (VFloat fx), Value (VInt fy) -> Value (VVec2 (fx, Int32.to_float fy))
-        | Value (VInt fx), Value (VInt fy) -> Value (VVec2 (Int32.to_float fx, Int32.to_float fy))
-        | _ -> raise (Vm_error { reason = VmIllFormedProgram })
-      end
-
-    (* An inline expression ended *)
-    | 0x9F ->
-      (* pull one element from stack *)
-      let v = Stack.pop stack in
-      (* check if value *)
-      begin match v with
-        | Value v -> Value (VString (string_of_value v))
-        | _ -> raise (Vm_error { reason = VmIllFormedProgram })
-      end
-
-    (* Unrecognized *)
-    | _ -> raise (Vm_error { reason = VmUnrecognizedDeclarator })
-
-(* parse an instruction *)
-let parse_instruction cpu io progbuf = match int_of_char (progbuf.next ()) with
-  (* A message *)
-  | 0x23 ->
-    let optcode = progbuf.next() in
-    (* compute the options *)
-    let options = List.rev_map (fun i -> match i with
-        | 0 -> MsgNoRush
-        | 1 -> MsgNoAcknowledge
-        | _ -> assert false) (Utils.Buf.deconstruct_flag (int_of_char optcode)) in
-    (* pull the token from the stack and check if it is a string *)
-    begin match Stack.pop cpu.stack with
-      (* Print the message *)
-      | Value (VString s) -> io_send_message io options s
-      (* There should be a string here. Ill formed program *)
-      | _ -> raise (Vm_error { reason = VmIllFormedProgram })
-    end
-  (* A choice *)
-  | 0x28 ->
-    (* get the number of choices *)
-    begin match Stack.pop cpu.stack with
-      | Value (VInt choices_num) ->
-        (* list of choices *)
-        let choices = ref [] in
-        (* depop stack *)
-        for _=0 to (Int32.to_int choices_num) - 1
-        do
-          (* depop a string *)
-          let choice = match Stack.pop cpu.stack with
-            | Value (VString s) -> s
-            | _ -> raise (Vm_error { reason = VmIllFormedProgram })
-          in
-          (* add it *)
-          choices := (!choices @ [choice])
-        done;
-        (* send it to the io, and wait for push token *)
-        let chosen = io_ask_choice io !choices in
-        (* push *)
-        Stack.push (Value (VInt (Int32.of_int chosen))) cpu.stack
-      (* Error.*)
-      | _ -> raise (Vm_error { reason = VmIllFormedProgram })
-    end
-
-
-  (* Unrecognized *)
-  | _ -> raise (Vm_error { reason = VmUnrecognizedDeclarator })
-
-(* parse a command*)
-let parse_command cpu progbuf = match int_of_char (progbuf.next ()) with
-  | 0x01 -> cpu_mem cpu (Stack.top cpu.stack)
-  | 0x02 -> cpu_dupl cpu
-  | 0x03 | 0x04 -> ()
-  | 0x10 ->
-    (* get the amount to jump *)
-    let jumpamount = ref 0L in
-    for i=0 to 7 do
-      (* byte to int64 *)
-      let nibble = Int64.of_int (int_of_char (progbuf.next ())) in
-      (* add *)
-      jumpamount := Int64.logor !jumpamount (Int64.shift_left nibble (i*8));
-    done;
-    (* get token *)
-    let isok = Stack.pop cpu.stack in
-    (* if they strings, concat (for the moment)*)
-    begin match isok with
-      | Value (VBool false) -> progbuf.seek (Int64.add (progbuf.pos ()) !jumpamount)
-      | Value (VBool true) -> ()
-      | _ -> failwith "Not implemented"
-    end
-
-  | 0x11 ->
-    (* get the amount to jump *)
-    let jumpamount = ref 0L in
-    for i=0 to 7 do
-      (* byte to int64 *)
-      let nibble = Int64.of_int (int_of_char (progbuf.next ())) in
-      (* add *)
-      jumpamount := Int64.logor !jumpamount (Int64.shift_left nibble (i*8));
-    done;
-    (* skip *)
-    progbuf.seek (Int64.add (progbuf.pos ()) !jumpamount)
-  | v -> print_int v; assert false
-
 (* parse the jumptable *)
 let parse_jumptable cpu progbuf =
   (* the read byte *)
@@ -263,32 +58,181 @@ let cpu_step cpu io =
     | None -> raise (Vm_error { reason = VmUnexpectedEOP })
     | Some p -> p
   in
-
   (* if jumptable not made, parse it *)
   if cpu.jumptable = None then parse_jumptable cpu progbuf;
-  (* peek at top *)
-  begin match int_of_char (progbuf.peek ()) with
-    (* A special op *)
-    | n when n < 0x20 -> parse_command cpu progbuf
-    (* A nop *)
-    | n when n = 0x80 -> ignore (progbuf.next ())
-    (* An instruction *)
-    | n when n >= 0x20 && n < 0x60 ->
-      (* Parse an instruction *)
-      parse_instruction cpu io progbuf
-    (* An identifier *)
-    | n when n >= 0x60 && n < 0x70 ->
-      (* Push onto stack *)
-      Stack.push (parse_identifier progbuf) cpu.stack
-    (* An value *)
-    | n when n >= 0x90 && n < 0xA0 ->
-      (* Push onto stack *)
-      Stack.push (parse_value cpu.stack progbuf) cpu.stack
-    (* An operation *)
-    | n when n = 0xA0 ->
-      (* Push onto stack *)
-      Stack.push (parse_operation cpu.stack progbuf) cpu.stack
+  (* peek top *)
+  begin match int_of_char (progbuf.next ()) with
+    (*
+     * FLOW CONTROL & STACK/ENV MANAGEMENT
+     *)
+    (* MEM instr *)
+    | 0x01 ->
+        (* memorize *)
+        cpu_mem cpu (Stack.top cpu.stack); return ()
+    (* DUPL instr *)
+    | 0x02 ->
+        (* duplicate *)
+        cpu_dupl cpu; return ()
+    (* Deepen scope *)
+    | 0x03 -> return ()
+    (* Raise scope *)
+    | 0x04 -> return ()
+    (* Skip if not *)
+    | 0x10 ->
+      (* get the amount to jump *)
+      let jumpamount = progbuf_read_int64 progbuf in
+      let goto = (Int64.add (progbuf.pos ()) jumpamount) in
+      (* get bool *)
+      let isok = bool_of_data (Stack.pop cpu.stack) in
+      (* if they strings, concat (for the moment)*)
+      if not isok then progbuf.seek goto;
+      (* return *)
+      return ()
+    (* Skip *)
+    | 0x11 ->
+      (* get the amount to jump *)
+      let jumpamount = progbuf_read_int64 progbuf in
+      let goto = (Int64.add (progbuf.pos ()) jumpamount) in
+      (* if they strings, concat (for the moment)*)
+      progbuf.seek goto;
+      (* return *)
+      return ()
 
+    (*
+     * INSTRUCTIONS
+     *)
+    (* A message *)
+    | 0x23 ->
+      (* compute the options *)
+      let optcode = progbuf.next() in
+      let options = List.rev_map (fun i -> match i with
+        | 0 -> MsgNoRush
+        | 1 -> MsgNoAcknowledge
+        | _ -> assert false) (Utils.Buf.deconstruct_flag (int_of_char optcode)) in
+      (* get a string form the stack *)
+      let str = string_of_data (Stack.pop cpu.stack) in
+      (* send message *)
+      io_send_message io options str
+
+    (* A choice *)
+    | 0x28 ->
+      (* get the number of choices *)
+      let choices_num = int_of_data (Stack.pop cpu.stack) in
+      (* list of choices *)
+      let choices = ref [] in
+      (* depop stack *)
+      for _ = 1 to Int32.to_int choices_num
+      (* depop a strings & add it *)
+      do
+        let choice = string_of_data (Stack.pop cpu.stack) in
+        choices := (!choices @ [choice])
+      done;
+      (* send it to the io, and wait for push token *)
+      io_ask_choice io !choices
+      (* push *)
+      >>= fun chosen -> Stack.push (data_of_int (Int32.of_int chosen)) cpu.stack; return ()
+
+    (* A nop *)
+    | 0x80 -> return ()
+
+    (*
+     * IDENTIFIERS
+     *)
+    | 0x60 | 0x61 | 0x62 as scopeid ->
+      (* read a string from here *)
+      let id = progbuf_read_string progbuf in
+      (* get a scope *)
+      let scope = match scopeid with
+        | 0x60 -> Extern
+        | 0x61 -> Global
+        | 0x62 -> Local
+        | _ -> raise (Vm_error { reason = VmUnrecognizedDeclarator })
+      in
+      (* push the identifier *)
+      Stack.push (Identifier (scope, id)) cpu.stack;
+      (* Return *)
+      return ()
+
+    (*
+     * LITERALS
+     *)
+    (* An int value *)
+    | 0x90 ->
+      (* Push on stack *)
+      Stack.push (data_of_int (progbuf_read_int32 progbuf)) cpu.stack; return()
+    (* A float value *)
+    | 0x91 ->
+      (* Push on stack *)
+      Stack.push (data_of_float (progbuf_read_float progbuf)) cpu.stack; return()
+    (* A boolean *)
+    | 0x92 ->
+      (* Push on stack *)
+      Stack.push (data_of_bool (progbuf_read_bool progbuf)) cpu.stack; return()
+     (* A string value *)
+    | 0x93 ->
+      (* Push on stack *)
+      Stack.push (data_of_string (progbuf_read_string progbuf)) cpu.stack; return()
+    (* An enum *)
+    | 0x94 -> assert false
+    (* A vector 2 value *)
+    | 0x95 ->
+      (* pull two elements from stack *)
+      let x = Stack.pop cpu.stack in
+      let y = Stack.pop cpu.stack in
+      (* check if they're floats (or ints for that matter) *)
+      let vx = number_of_data x in
+      let vy = number_of_data y in
+      (* push the value *)
+      Stack.push (data_of_vec2 vx vy) cpu.stack; return()
+    (* A vector 3 value *)
+    | 0x96 ->
+      (* pull two elements from stack *)
+      let x = Stack.pop cpu.stack in
+      let y = Stack.pop cpu.stack in
+      let z = Stack.pop cpu.stack in
+      (* check if they're floats (or ints for that matter) *)
+      let vx = number_of_data x in
+      let vy = number_of_data y in
+      let vz = number_of_data z in
+      (* push the value *)
+      Stack.push (data_of_vec3 vx vy vz) cpu.stack; return()
+
+    (*
+     *  EXPRESIONS
+     *)
+    (* Inline expressions *)
+    | 0x9F ->
+      (* pop a tok *)
+      let data = Stack.pop cpu.stack in
+      (* push a string *)
+      Stack.push (data_of_string (inline_string_of_data data)) cpu.stack;
+      (* Return *)
+      return ()
+    (* An operation *)
+    | 0xA0 ->
+      (* pop two toks *)
+      let lhs = value_of_data (Stack.pop cpu.stack) in
+      let rhs = value_of_data (Stack.pop cpu.stack) in
+      (* Get operation *)
+      let op = match int_of_char (progbuf.next ()) with
+        | 0x00 -> OpPlus
+        | 0x01 -> OpMinus
+        | 0x02 -> OpStar
+        | 0x03 -> OpDivide
+        | 0x04 -> OpAnd
+        | 0x05 -> OpOr
+        | 0x06 -> OpEqual
+        | 0x07 -> OpNotEqual
+        | 0x08 -> OpLeq
+        | 0x09 -> OpGeq
+        | 0x0A -> OpLess
+        | 0x0B -> OpMore
+        | _ -> raise (Vm_error { reason = VmUnrecognizedOperation })
+      in
+      (* Compute *)
+      let result = alu_compute lhs op rhs in
+      (* Push onto stack *)
+      Stack.push (data_of_value result) cpu.stack; return ()
     (* Unrecognized *)
     | _ -> raise (Vm_error { reason = VmUnrecognizedDeclarator })
   end

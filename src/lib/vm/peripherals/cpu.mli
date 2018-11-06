@@ -17,7 +17,7 @@ val cpu_make : unit -> cpu
 (* Bind a progbuf *)
 val cpu_bind : cpu -> progbuf-> unit
 (* start the cpu *)
-val cpu_step : cpu -> io -> unit
+val cpu_step : cpu -> io -> unit Lwt.t
 
 (* push data in mem *)
 val cpu_mem : cpu -> data -> unit

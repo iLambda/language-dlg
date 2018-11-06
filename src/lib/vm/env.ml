@@ -31,6 +31,7 @@ let env_wipe env =
 let env_scoped_hashtable env scope = match scope with
   | Local -> env.local
   | Global -> env.global
+  | _ -> assert false
 
 (* Raises the scope *)
 let env_raise_scope env =

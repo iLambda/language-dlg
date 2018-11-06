@@ -6,4 +6,4 @@
 (executable
   (name dlgvm)
   (modules dlgvm)
-  (libraries utils DLG vm))
+  (libraries utils DLG lambda-term vm))

@@ -7,17 +7,17 @@
   -> "Mayyybe."
     "Alright, alright, you don't have to tell me."
 "But hey. Think of a number."
-? 2
+? 5
   ->3
     "Ah, three !"
     "I like three. It's good." noack
     "It's like the chocolate of numbers."
+  ->2
+    "Wow, two !!"
   ->5
     "Five ? What ?"
     "I don't like this. No." noack
     "At all."
-  ->2
-    "Wow, two !!"
   ->_
     "Really ?"
 

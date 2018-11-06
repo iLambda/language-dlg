@@ -7,13 +7,17 @@ DLG is a scripting language bundled with expression evaluation & code interactiv
 ## Building
 
 This project depends on the following modules :
-  * menhir
-  * dune
-  * ANSITerminal
+* menhir
+* dune
+* ANSITerminal
+* dlist
+* lwt
+* lambda-term
 
 You can install them by typing :
+
 ```bash
-$$ opam install menhir dune ANSITerminal dlist
+$$ opam install menhir dune ANSITerminal dlist lwt lambda-term
 ```
 
 You can build the project by going to the root folder and using :
