@@ -36,18 +36,46 @@ let () =
                   |  DLG.Parser.Error -> Utils.Error.print_syntax_error_at c lb;
                                          exit 1
                 in
+      if not !opt_print then print_string "Parsing OK\n";
       (* Check typing *)
       let () = try Typing.Checker.check_program_type ast
                    with
                     | Typing.Error.Type_error e -> Typing.Error.print_type_error_at e (Some c);
                                                    exit 1
                    in
+       if not !opt_print then print_string "Typing OK\n";
       (* Optimize ast *)
       let optiast = Optimiser.optimise_program ast in
+      if not !opt_print then print_string "Optimisation OK\n";
       (* Create the p-code *)
       let pcode = Compilation.Compiler.compile optiast in
+      if not !opt_print then print_string "Compilation OK\n";
       (* Close input file *)
       close_in c;
+
+      (* Compute size *)
+      let size = Compilation.Pcode.byte_length_of pcode in
+      (* To human readable size *)
+      let to_human_readable size =
+        (* units list *)
+        let units = ["B"; "kB"; "MB"; "GB"; "TB"; "PB"; "EB"; "ZB"; "YB"] in
+        (* thresh *)
+        let thresh = 1024L in
+        (* rec *)
+        let rec aux size rem u =
+          (* check size *)
+          if size < thresh then ((Int64.to_string size) ^ "." ^ (Int64.to_string rem) ^ (List.nth units u))
+          (* divide *)
+          else
+            (* the integer part of the size *)
+            let intpart = (Int64.div size thresh) in
+            let decpart = 1000. *. ((Int64.to_float (Int64.rem size thresh)) /. (Int64.to_float thresh)) in
+            aux intpart (Int64.of_float decpart) (u+1)
+        in aux size 0L 0
+      in
+      (* Print size *)
+      if not !opt_print
+      then Printf.printf "Bytecode size : %s (%Ld bytes)\n" (to_human_readable size) size;
 
       (* Check if print to stdout *)
       if !opt_print
