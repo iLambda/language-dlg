@@ -15,6 +15,22 @@ type operation =
   | OpLess
   | OpMore
 
+(* Copy type *)
+let alu_copy_type dummy dest = match dummy, dest with
+  (* Identity cast *)
+  | src, dest when same_type src dest -> dest
+  (* Cast numbers *)
+  | (VInt _), VFloat f -> VInt (Int32.of_float f)
+  | (VFloat _), VInt i -> VFloat (Int32.to_float i)
+  (* Vectors *)
+  | (VVec2 _), VVec3 (x, y, _) -> VVec2 (x, y)
+  | (VVec3 _), VVec2 (x, y) -> VVec3 (x, y, 0.)
+  (* Anything to string *)
+  | (VString _), _ -> VString (inline_string_of_data (Value dest))
+  (* Other casts don't work *)
+  | _ -> raise (make_type_error "" (Value dest))
+
+
 (* Compute an operation *)
 let alu_compute lhs op rhs = match op with
   (* plus operator *)

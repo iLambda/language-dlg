@@ -17,3 +17,5 @@ type operation =
 
 (* Compute an operation *)
 val alu_compute : value -> operation -> value -> value
+(* Cast a value *)
+val alu_copy_type : value -> value -> value

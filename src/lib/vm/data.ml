@@ -85,6 +85,15 @@ let data_of_vec2 x y = Value (VVec2 (x, y))
 let data_of_vec3 x y z = Value (VVec3 (x, y, z))
 let data_of_value v = Value v
 
+(* string of value type *)
+let string_of_value_type = function
+  | VInt _ -> "int"
+  | VFloat _ -> "float"
+  | VBool _ -> "bool"
+  | VString _ -> "string"
+  | VVec2 _ -> "vec2"
+  | VVec3 _ -> "vec3"
+
 (* inline a value *)
 let inline_string_of_data = function
   | Value v -> string_of_value v

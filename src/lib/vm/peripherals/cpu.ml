@@ -344,11 +344,42 @@ let cpu_step cpu io =
       Stack.push (data_of_value result) cpu.stack; return ()
 
     (* Ternary expressions *)
-    | 0xA1 -> return ()
+    | 0xA1 ->
+      (* get tokens *)
+      let condition = bool_of_data (Stack.pop cpu.stack) in
+      let thendo = value_of_data (Stack.pop cpu.stack) in
+      let elsedo = value_of_data (Stack.pop cpu.stack) in
+      (* check if then and else have the same type *)
+      if not (same_type thendo elsedo) then
+      raise (make_type_error (string_of_value_type thendo) (Value elsedo));
+      (* check condition *)
+      if condition then Stack.push (Value thendo) cpu.stack
+                   else Stack.push (Value elsedo) cpu.stack;
+      (* return *)
+      return ()
+
     (* Function call *)
     | 0xA2 -> return ()
     (* Cast *)
-    | 0xA3 -> return ()
+    | 0xA3 ->
+      (* pop a tok *)
+      let value = value_of_data (Stack.pop cpu.stack) in
+      (* read the destination type and make the dummy *)
+      let dummy = match int_of_char (progbuf.next ()) with
+        | 0x90 -> VInt 0l
+        | 0x91 -> VFloat 0.
+        | 0x92 -> VBool false
+        | 0x93 -> VString ""
+        | 0x94 -> failwith "No enums implemented for now"
+        | 0x95 -> VVec2 (0., 0.)
+        | 0x96 -> VVec3 (0., 0., 0.)
+        | _ -> raise (Vm_error { reason = VmUnrecognizedDeclarator }) in
+      (* convert *)
+      let casted = alu_copy_type dummy value in
+      (* repush on stack *)
+      Stack.push (Value casted) cpu.stack;
+      (* return *)
+      return ()
 
     (* Unrecognized *)
     | _ -> raise (Vm_error { reason = VmUnrecognizedDeclarator })
