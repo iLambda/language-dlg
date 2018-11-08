@@ -2,15 +2,13 @@ open Data
 
 (* A scoped environment *)
 type unscoped_env = (identifier, value) Hashtbl.t
-type scoped_env = (identifier, (value * int32)) Hashtbl.t
+type scoped_env = ((identifier, value) Hashtbl.t) Stack.t
 (* An environment *)
 type env = {
   (* local environment *)
   local: scoped_env;
   (* global environment *)
   global: unscoped_env;
-  (* depth *)
-  mutable depth: int32;
 }
 
 (* make an empty environment *)
