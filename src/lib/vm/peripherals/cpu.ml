@@ -359,8 +359,25 @@ let cpu_step cpu io =
       return ()
 
     (* Function call *)
-    | 0xA2 -> return ()
-    
+    | 0xA2 ->
+      (* pull the identifier *)
+      let id = extern_id_of_data (Stack.pop cpu.stack) in
+      (* the arglist length *)
+      let length = progbuf_read_int32 progbuf in
+      (* pull the tokens *)
+      let arglist = ref ([]:value list) in
+      (* fill *)
+      for _ = 1 to Int32.to_int length do
+        (* push *)
+        arglist := (value_of_data (Stack.pop cpu.stack)) :: !arglist
+      done;
+      (* call the func *)
+      let result = alu_call id (List.rev !arglist) in
+      (* push it on the stack *)
+      Stack.push (Value result) cpu.stack;
+      (* return *)
+      return ()
+
     (* Cast *)
     | 0xA3 ->
       (* pop a tok *)

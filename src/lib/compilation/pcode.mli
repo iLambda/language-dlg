@@ -40,7 +40,7 @@ type opcode =
   | OpcVariable
   | OpcOperation of operation
   | OpcTernary
-  | OpcFunctionCall
+  | OpcFunctionCall of int32
   | OpcCast of type_const
   | OpcAccess
   | OpcInline

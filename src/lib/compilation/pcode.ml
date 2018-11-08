@@ -42,7 +42,7 @@ type opcode =
   | OpcVariable
   | OpcOperation of operation
   | OpcTernary
-  | OpcFunctionCall
+  | OpcFunctionCall of int32
   | OpcCast of type_const
   | OpcAccess
   | OpcInline
@@ -201,7 +201,11 @@ let rec byte_sequence_of_opcode = function
     (* return bytes *)
     in Buf.byte_from_list [0xA0; operationcode]
   | OpcTernary -> Buf.byte_from_list [ 0xA1 ]
-  | OpcFunctionCall -> Buf.byte_from_list [ 0xA2 ]
+  | OpcFunctionCall arglen ->
+    (* convert int to buffer *)
+    let buffer = Utils.Buf.int32_to_buf arglen in
+    (* return *)
+    Bytes.cat (Buf.byte_from_list [ 0xA2 ]) (Buffer.to_bytes buffer)   
   | OpcCast t -> Buf.byte_from_list (0xA3::begin match t with
       | TInt -> [ 0x90 ]
       | TFloat -> [ 0x91 ]

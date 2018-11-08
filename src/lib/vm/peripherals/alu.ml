@@ -1,5 +1,16 @@
 open Data
 
+type alu_error_reason =
+  | AluCallInvalidArgType of int * value * value
+  | AluCallInvalidArgNumber of int * int
+  | AluCallNoSuchFunction of string
+
+type alu_error = {
+  reason: alu_error_reason;
+}
+
+exception Alu_error of alu_error
+
 (* An operation *)
 type operation =
   | OpPlus
@@ -29,6 +40,62 @@ let alu_copy_type dummy dest = match dummy, dest with
   | (VString _), _ -> VString (inline_string_of_data (Value dest))
   (* Other casts don't work *)
   | _ -> raise (make_type_error "" (Value dest))
+
+(* Apply a function from the VM's library *)
+let alu_call name args =
+  (* helper to ensure type *)
+  let rec ensure_type_args model args = match model, args with
+    (* nothing left in the two lists : ok*)
+    | [], [] -> ()
+    (* something is wrong in the nubmer of args *)
+    | [], _
+    | _, []  -> raise (Alu_error { reason = (AluCallInvalidArgNumber ((List.length model),(List.length args)))  })
+    (* two args : check types *)
+    | model_arg::model_tl, arg::tl when same_type model_arg arg -> ensure_type_args model_tl tl
+    | model_arg::model_tl, arg::_ ->
+      (* get id of current arg failure *)
+      let arg_id = (List.length model) - (List.length model_tl) - 1 in
+      (* raise *)
+      raise (Alu_error { reason = (AluCallInvalidArgType (arg_id, model_arg, arg)) })
+  in
+  (* match over name of function *)
+  match name with
+    (* random function *)
+    | "rand" ->
+        (* ensure there are the right number of args *)
+        ensure_type_args [] args;
+        (* call *)
+        (fun _ -> VFloat (Random.float 1.0))(args)
+    (* cos function *)
+    | "cos" ->
+        (* ensure there are the right number of args *)
+        ensure_type_args [ VFloat 0. ] args;
+        (* call *)
+        (fun args ->
+          (* get first token as float value *)
+          let x = float_of_value (List.nth args 0)
+          in VFloat (cos x))(args)
+    (* sin function *)
+    | "sin" ->
+        (* ensure there are the right number of args *)
+        ensure_type_args [ VFloat 0. ] args;
+        (* call *)
+        (fun args ->
+          (* get first token as float value *)
+          let x = float_of_value (List.nth args 0)
+          in VFloat (sin x))(args)
+    (* tan function *)
+    | "tan" ->
+        (* ensure there are the right number of args *)
+        ensure_type_args [ VFloat 0. ] args;
+        (* call *)
+        (fun args ->
+          (* get first token as float value *)
+          let x = float_of_value (List.nth args 0)
+          in VFloat (tan x))(args)
+
+    (* no such function.*)
+    | _ -> raise (Alu_error { reason = (AluCallNoSuchFunction name) })
 
 
 (* Compute an operation *)

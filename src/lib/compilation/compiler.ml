@@ -445,7 +445,7 @@ and of_expression expr = match expr with
     (* all the expressions *)
     ((List.rev_map of_expression (List.map value (value arglist))) @ [
       of_opcode (OpcIdentifier (SExtern, value identifier));
-      of_opcode OpcFunctionCall;
+      of_opcode (OpcFunctionCall (Int32.of_int (List.length (value arglist))));
     ])
   (* A cast *)
   | ETypeCast (t, expr) -> Pcode.concat [

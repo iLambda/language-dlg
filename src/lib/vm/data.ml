@@ -9,7 +9,7 @@ type value =
   | VVec3 of float * float * float
 
 (* string of value *)
-let string_of_value = function
+let inline_string_of_value = function
   | VInt i -> Int32.to_string i
   | VFloat f -> string_of_float f
   | VBool b -> string_of_bool b
@@ -70,6 +70,13 @@ let string_of_data = function Value (VString x) -> x | d -> raise (make_type_err
 let vec2_of_data = function Value (VVec2 (x, y)) -> (x, y) | d -> raise (make_type_error "vec2" d)
 let vec3_of_data = function Value (VVec3 (x, y, z)) -> (x, y, z) | d -> raise (make_type_error "vec3" d)
 
+let int_of_value = function (VInt x) -> x | d -> raise (make_type_error "int" (Value d))
+let float_of_value = function (VFloat x) -> x | d -> raise (make_type_error "float" (Value d))
+let bool_of_value = function (VBool x) -> x | d -> raise (make_type_error "bool" (Value d))
+let string_of_value = function (VString x) -> x | d -> raise (make_type_error "string" (Value d))
+let vec2_of_value = function (VVec2 (x, y)) -> (x, y) | d -> raise (make_type_error "vec2" (Value d))
+let vec3_of_value = function (VVec3 (x, y, z)) -> (x, y, z) | d -> raise (make_type_error "vec3" (Value d))
+
 let extern_id_of_data = function Identifier (Extern, s) -> s | d -> raise (make_type_error "extern id" d)
 let id_of_data = function Identifier id -> id | d -> raise (make_type_error "int" d)
 let number_of_data = function
@@ -96,5 +103,5 @@ let string_of_value_type = function
 
 (* inline a value *)
 let inline_string_of_data = function
-  | Value v -> string_of_value v
+  | Value v -> inline_string_of_value v
   | d -> raise (make_type_error "any value" d)

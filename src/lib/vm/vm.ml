@@ -39,6 +39,8 @@ let run vm progbuf =
     io_enable vm.io
     (* bind progbuf *)
     >>= fun mode -> return (cpu_bind vm.cpu progbuf)
+    (* init random *)
+    >>= fun () -> Random.self_init (); return ()
     (* start *)
     >>= fun () -> Lwt.finalize
           (* do loop *)
