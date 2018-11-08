@@ -360,11 +360,12 @@ let cpu_step cpu io =
 
     (* Function call *)
     | 0xA2 -> return ()
+    
     (* Cast *)
     | 0xA3 ->
       (* pop a tok *)
       let value = value_of_data (Stack.pop cpu.stack) in
-      (* read the destination type and make the dummy *)
+      (* read the destination type and make the dummy value for type copy *)
       let dummy = match int_of_char (progbuf.next ()) with
         | 0x90 -> VInt 0l
         | 0x91 -> VFloat 0.
