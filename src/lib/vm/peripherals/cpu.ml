@@ -7,12 +7,17 @@ open Progbuf
 open Lwt
 open Alu
 
+type cpu_jump = {
+  depth: int32;
+  offset: int64;
+}
+
 type cpu = {
   mutable progbuf: progbuf option;
   stack: datastack;
   environment: env;
   mutable mem: data option;
-  mutable jumptable: (int32*int64) list option
+  mutable jumptable: cpu_jump list option
 }
 
 (* Makes a cpu *)
@@ -45,11 +50,21 @@ let cpu_dupl cpu =
 let parse_jumptable cpu progbuf =
   (* the read byte *)
   let current = ref 0 in
+  (* make the jump table *)
+  let jt = ref [] in
   (* read each byte till 0xFF *)
-  while (current := (int_of_char (progbuf.next ()))); !current <> 0xFF
-  do (); done;
-  (* table is built *)
-  cpu.jumptable <- Some []
+  while (current := (int_of_char (progbuf.peek ()))); !current <> 0xFF
+  do begin
+    (* get the depth and the pos *)
+    let depth = progbuf_read_int32 progbuf in
+    let position = progbuf_read_int64 progbuf in
+    (* push in jump table *)
+    jt := { depth=depth; offset=position }::(!jt)
+  end; done;
+  (* consume the end *)
+  ignore(progbuf.next());
+  (* table is built in reverse order ; set and reverse it *)
+  cpu.jumptable <- Some (List.rev !jt)
 
 (* start the cpu *)
 let cpu_step cpu io =
@@ -60,6 +75,10 @@ let cpu_step cpu io =
   in
   (* if jumptable not made, parse it *)
   if cpu.jumptable = None then parse_jumptable cpu progbuf;
+  (* get it *)
+  let jumptable = match cpu.jumptable with
+    | Some jt -> jt
+    | None -> assert false in
   (* peek top *)
   begin match int_of_char (progbuf.next ()) with
     (*
@@ -176,6 +195,11 @@ let cpu_step cpu io =
       (* return *)
       return ()
 
+    (* Invoke a function *)
+    | 0x26 -> return ()
+    (* Send a message to the VM *)
+    | 0x27 -> return ()
+
     (* A choice *)
     | 0x28 ->
       (* get the number of choices *)
@@ -193,6 +217,18 @@ let cpu_step cpu io =
       io_ask_choice io !choices
       (* push *)
       >>= fun chosen -> Stack.push (data_of_int (Int32.of_int chosen)) cpu.stack; return ()
+
+    (* A goto *)
+    | 0x29 ->
+      (* get jump id *)
+      let jumpid = progbuf_read_int32 progbuf in
+      let { depth=env_depth; offset=pbf_offset } = List.nth jumptable (Int32.to_int jumpid) in
+      (* set depth in env *)
+      env_set_scope_depth cpu.environment env_depth;
+      (* move progbuf *)
+      progbuf.seek pbf_offset;
+      (* return *)
+      return ()
 
     (* A nop *)
     | 0x80 -> return ()
@@ -306,6 +342,14 @@ let cpu_step cpu io =
       let result = alu_compute lhs op rhs in
       (* Push onto stack *)
       Stack.push (data_of_value result) cpu.stack; return ()
+
+    (* Ternary expressions *)
+    | 0xA1 -> return ()
+    (* Function call *)
+    | 0xA2 -> return ()
+    (* Cast *)
+    | 0xA3 -> return ()
+
     (* Unrecognized *)
     | _ -> raise (Vm_error { reason = VmUnrecognizedDeclarator })
   end

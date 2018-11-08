@@ -4,12 +4,17 @@ open Env
 open Progbuf
 open Io
 
+type cpu_jump = {
+  depth: int32;
+  offset: int64;
+}
+
 type cpu = {
   mutable progbuf: progbuf option;
   stack: datastack;
   environment: env;
   mutable mem: data option;
-  mutable jumptable: (int32*int64) list option
+  mutable jumptable: cpu_jump list option
 }
 
 (* Makes a cpu *)

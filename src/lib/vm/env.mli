@@ -2,7 +2,7 @@ open Data
 
 (* A scoped environment *)
 type unscoped_env = (identifier, value) Hashtbl.t
-type scoped_env = (identifier, (value * int)) Hashtbl.t
+type scoped_env = (identifier, (value * int32)) Hashtbl.t
 (* An environment *)
 type env = {
   (* local environment *)
@@ -10,7 +10,7 @@ type env = {
   (* global environment *)
   global: unscoped_env;
   (* depth *)
-  mutable depth: int;
+  mutable depth: int32;
 }
 
 (* make an empty environment *)
@@ -33,4 +33,4 @@ val env_same_type : env -> scope -> identifier -> value -> bool
 (* raise/deepen scope *)
 val env_raise_scope : env -> unit
 val env_deepen_scope : env -> unit
-val env_set_scope_depth : env -> int -> unit
+val env_set_scope_depth : env -> int32 -> unit

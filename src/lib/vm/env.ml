@@ -3,7 +3,7 @@ open Error
 
 (* A scoped environment *)
 type unscoped_env = (identifier, value) Hashtbl.t
-type scoped_env = (identifier, (value * int)) Hashtbl.t
+type scoped_env = (identifier, (value * int32)) Hashtbl.t
 (* An environment *)
 type env = {
   (* local environment *)
@@ -11,14 +11,14 @@ type env = {
   (* global environment *)
   global: unscoped_env;
   (* depth *)
-  mutable depth: int;
+  mutable depth: int32;
 }
 
 (* make an empty environment *)
 let env_make () = {
   local = Hashtbl.create 64;
   global = Hashtbl.create 64;
-  depth = 0;
+  depth = 0l;
 }
 
 (* clear script local values *)
@@ -35,10 +35,10 @@ let env_set_scope_depth env depth =
   env.depth <- depth
 (* Raises the scope *)
 let env_raise_scope env =
-  env.depth <- env.depth - 1
+  env.depth <- (Int32.pred env.depth)
 (* Deepends the scope *)
 let env_deepen_scope env =
-  env.depth <- env.depth + 1
+  env.depth <- (Int32.succ env.depth)
 
 (* get type of declaration *)
 let env_same_type env scope id value =
