@@ -7,6 +7,7 @@ type vm_error_reason =
   | VmIllFormedProgram
   | VmMemEmpty
   | VmUnrecognizedOperation
+  | VmAlreadyBoundVariable
 
 (* The payload of a vm error *)
 type vm_error = {
@@ -27,6 +28,7 @@ let string_of_vm_error error =
     | VmIllFormedProgram -> "The p-code is ill-formed"
     | VmMemEmpty -> "Memory was empty"
     | VmUnrecognizedOperation -> "Operation not recognized"
+    | VmAlreadyBoundVariable -> "Variable was already bound"
   in
   (* the message *)
   "Program error : " ^ reason ^ "\n"

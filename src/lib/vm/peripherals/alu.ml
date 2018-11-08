@@ -17,16 +17,136 @@ type operation =
 
 (* Compute an operation *)
 let alu_compute lhs op rhs = match op with
-  (* + *)
+  (* plus operator *)
   | OpPlus -> begin match lhs, rhs with
     (* String concat *)
     | VString s1, VString s2 -> VString (s1 ^ s2)
-    (* Not implemented yet *)
-    | _ -> failwith "Not implemented"
+    (* Vector add *)
+    | VVec2 (x1, y1), VVec2(x2, y2) -> VVec2(x1 +. x2, y1 +. y2)
+    | VVec3 (x1, y1, z1), VVec3(x2, y2, z2) -> VVec3(x1 +. x2, y1 +. y2, z1 +. z2)
+    (* Numbers *)
+    | VInt i1, VInt i2 -> VInt (Int32.add i1 i2)
+    | _ ->
+      (* try get as numbers *)
+      let x = number_of_data (Value lhs) in
+      let y = number_of_data (Value rhs) in
+      VFloat (x +. y)
   end
+  (* minus operator *)
+  | OpMinus -> begin match lhs, rhs with
+    (* Vector add *)
+    | VVec2 (x1, y1), VVec2(x2, y2) -> VVec2(x1 -. x2, y1 -. y2)
+    | VVec3 (x1, y1, z1), VVec3(x2, y2, z2) -> VVec3(x1 -. x2, y1 -. y2, z1 -. z2)
+    (* Numbers *)
+    | VInt i1, VInt i2 -> VInt (Int32.sub i1 i2)
+    | _ ->
+      (* try get as numbers *)
+      let x = number_of_data (Value lhs) in
+      let y = number_of_data (Value rhs) in
+      VFloat (x -. y)
+  end
+  (* star operator *)
+  | OpStar -> begin match lhs, rhs with
+    (* Numbers *)
+    | VInt i1, VInt i2 -> VInt (Int32.mul i1 i2)
+    | VInt _, VFloat _
+    | VFloat _, VInt _
+    | VFloat _, VFloat  _ ->
+      (* coerce as floats *)
+      let x = number_of_data (Value lhs) in
+      let y = number_of_data (Value rhs) in
+      VFloat(x *. y)
+
+    (* 2D vectors *)
+    | VVec2 (x, y), n
+    | n, VVec2(x, y) ->
+      (* coerce as floats *)
+      let f = number_of_data (Value n) in
+      VVec2(f *. x, f *. y)
+    (* 3D vectors *)
+    | VVec3 (x, y, z), n
+    | n, VVec3(x, y, z) ->
+      (* coerce as floats *)
+      let f = number_of_data (Value n) in
+      VVec3(f *. x, f *. y, f *. z)
+
+    (* String repetition *)
+    | VInt i1, VString s1
+    | VString s1, VInt i1 ->
+      (* repeat string *)
+      let rec stringn s n = match n with
+        | 1l -> s
+        | _ -> s ^ stringn s (Int32.pred n) in
+      (* repeat *)
+      VString (stringn s1 i1)
+
+    (* Error *)
+    | _ -> raise (make_type_error "" (Value lhs))
+  end
+
+
+  | OpDivide -> begin match lhs, rhs with
+    (* Numbers *)
+    | VInt i1, VInt i2 -> VInt (Int32.div i1 i2)
+    | VInt _, VFloat _
+    | VFloat _, VInt _
+    | VFloat _, VFloat  _ ->
+      (* coerce as floats *)
+      let x = number_of_data (Value lhs) in
+      let y = number_of_data (Value rhs) in
+      VFloat(x /. y)
+
+    (* 2D vectors *)
+    | VVec2 (x, y), n ->
+      (* coerce as floats *)
+      let f = number_of_data (Value n) in
+      VVec2(x /. f, y  /. f)
+    (* 3D vectors *)
+    | VVec3 (x, y, z), n ->
+      (* coerce as floats *)
+      let f = number_of_data (Value n) in
+      VVec3(x /. f, y /. f, z /. f)
+
+    (* Error *)
+    | _ -> raise (make_type_error "" (Value lhs))
+  end
+  (* Comparison operators *)
+  | OpMore -> begin match lhs, rhs with
+    | VInt s1, VInt s2 -> VBool (s1 > s2)
+    | _ ->
+      (* try get as numbers *)
+      let x = number_of_data (Value lhs) in
+      let y = number_of_data (Value rhs) in
+      VBool (x > y)
+  end
+  | OpLess -> begin match lhs, rhs with
+    | VInt s1, VInt s2 -> VBool (s1 < s2)
+    | _ ->
+      (* try get as numbers *)
+      let x = number_of_data (Value lhs) in
+      let y = number_of_data (Value rhs) in
+      VBool (x < y)
+  end
+  | OpLeq -> begin match lhs, rhs with
+    | VInt s1, VInt s2 -> VBool (s1 <= s2)
+    | _ ->
+      (* try get as numbers *)
+      let x = number_of_data (Value lhs) in
+      let y = number_of_data (Value rhs) in
+      VBool (x <= y)
+  end
+  | OpGeq -> begin match lhs, rhs with
+    | VInt s1, VInt s2 -> VBool (s1 >= s2)
+    | _ ->
+      (* try get as numbers *)
+      let x = number_of_data (Value lhs) in
+      let y = number_of_data (Value rhs) in
+      VBool (x >= y)
+  end
+  (* Boolean operators *)
+  | OpAnd -> VBool ((bool_of_data (Value lhs)) && (bool_of_data (Value rhs)))
+  | OpOr -> VBool ((bool_of_data (Value lhs)) || (bool_of_data (Value rhs)))
   (* Equality  *)
   | OpEqual -> VBool (lhs = rhs)
   (* Difference *)
   | OpNotEqual -> VBool (lhs <> rhs)
-  (* Not implemented yet *)
-  | _ -> failwith "Not implemented"

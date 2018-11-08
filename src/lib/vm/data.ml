@@ -17,6 +17,16 @@ let string_of_value = function
   | VVec2 (x, y) -> "(x=" ^ (string_of_float x) ^ " ;y="  ^ (string_of_float y) ^ ")"
   | VVec3 (x, y, z) -> "(x=" ^ (string_of_float x) ^ " ;y="  ^ (string_of_float y) ^ " ;z="  ^ (string_of_float z) ^ ")"
 
+(* is same type *)
+let same_type v1 v2 = match v1, v2 with
+  | VInt _, VInt _ -> true
+  | VFloat _, VFloat _ -> true
+  | VBool _, VBool _ -> true
+  | VString _, VString _ -> true
+  | VVec2 _, VVec2 _ -> true
+  | VVec3 _, VVec3 _ -> true
+  | _ -> false
+
 (* A scope *)
 type scope = Local | Global | Extern
 (* An identifier *)
@@ -34,10 +44,19 @@ type data_type_exception = {
   expected: string;
   token: data;
 }
+type variable_type_exception = {
+  expected: value;
+  token: value;
+}
 (* An exception *)
 exception Wrong_data_type of data_type_exception
+exception Wrong_variable_type of variable_type_exception
 (* Make data type *)
 let make_type_error expected token = Wrong_data_type ({
+  expected=expected;
+  token=token;
+})
+let make_variable_error expected token = Wrong_variable_type ({
   expected=expected;
   token=token;
 })
@@ -50,6 +69,8 @@ let bool_of_data = function Value (VBool x) -> x | d -> raise (make_type_error "
 let string_of_data = function Value (VString x) -> x | d -> raise (make_type_error "string" d)
 let vec2_of_data = function Value (VVec2 (x, y)) -> (x, y) | d -> raise (make_type_error "vec2" d)
 let vec3_of_data = function Value (VVec3 (x, y, z)) -> (x, y, z) | d -> raise (make_type_error "vec3" d)
+
+let extern_id_of_data = function Identifier (Extern, s) -> s | d -> raise (make_type_error "extern id" d)
 let id_of_data = function Identifier id -> id | d -> raise (make_type_error "int" d)
 let number_of_data = function
   | Value (VFloat x) -> x

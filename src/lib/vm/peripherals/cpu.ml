@@ -74,9 +74,9 @@ let cpu_step cpu io =
         (* duplicate *)
         cpu_dupl cpu; return ()
     (* Deepen scope *)
-    | 0x03 -> return ()
+    | 0x03 -> env_deepen_scope cpu.environment; return ()
     (* Raise scope *)
-    | 0x04 -> return ()
+    | 0x04 -> env_raise_scope cpu.environment; return ()
     (* Skip if not *)
     | 0x10 ->
       (* get the amount to jump *)
@@ -101,6 +101,36 @@ let cpu_step cpu io =
     (*
      * INSTRUCTIONS
      *)
+    (* A set instruction *)
+    | 0x20 ->
+      (* pull the value, and the scoped id *)
+      let scope, id = id_of_data (Stack.pop cpu.stack) in
+      let value = value_of_data (Stack.pop cpu.stack) in
+      (* set the value *)
+      env_set cpu.environment scope id value;
+      (* return *)
+      return ()
+
+    (* An ifnset instruction *)
+    | 0x21 ->
+      (* pull the value, and the scoped id *)
+      let scope, id = id_of_data (Stack.pop cpu.stack) in
+      let value = value_of_data (Stack.pop cpu.stack) in
+      (* set the value *)
+      env_ifnset cpu.environment scope id value;
+      (* return *)
+      return ()
+
+    (* An init instruction *)
+    | 0x22 ->
+      (* pull the value, and the scoped id *)
+      let scope, id = id_of_data (Stack.pop cpu.stack) in
+      let value = value_of_data (Stack.pop cpu.stack) in
+      (* set the value *)
+      env_init cpu.environment scope id value;
+      (* return *)
+      return ()
+
     (* A message *)
     | 0x23 ->
       (* compute the options *)
@@ -113,6 +143,38 @@ let cpu_step cpu io =
       let str = string_of_data (Stack.pop cpu.stack) in
       (* send message *)
       io_send_message io options str
+
+    (* A wait instruction *)
+    | 0x24 ->
+      (* pull a token *)
+      let tok1 = Stack.pop cpu.stack in
+      (* if it is a value wait right away *)
+      begin match tok1 with
+        (* a value ; no wait for event *)
+        | Value _ ->
+          (* duration *)
+          let duration = float_of_data tok1 in
+          (* sleep *)
+          Lwt_unix.sleep duration
+        (* an identifier ; get the time and wait for it *)
+        | Identifier _ ->
+          (* get identifier *)
+          let _id = extern_id_of_data tok1 in
+          let duration = float_of_data (Stack.pop cpu.stack) in
+          (* wait for event *)
+          (* TODO *)
+          (* sleep *)
+          Lwt_unix.sleep duration
+      end
+
+    (* A speed instruction *)
+    | 0x25 ->
+      (* pull a number *)
+      let speed = number_of_data (Stack.pop cpu.stack) in
+      (* change speed *)
+      io.speed <- speed;
+      (* return *)
+      return ()
 
     (* A choice *)
     | 0x28 ->
@@ -200,6 +262,17 @@ let cpu_step cpu io =
     (*
      *  EXPRESIONS
      *)
+    (* A variable access *)
+    | 0x8F ->
+      (* get identifier *)
+      let scope, id = id_of_data (Stack.pop cpu.stack) in
+      (* get value *)
+      let value = env_get cpu.environment scope id in
+      (* push it *)
+      Stack.push (Value value) cpu.stack;
+      (* return *)
+      return ()
+
     (* Inline expressions *)
     | 0x9F ->
       (* pop a tok *)
