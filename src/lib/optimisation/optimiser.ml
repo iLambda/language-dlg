@@ -111,9 +111,12 @@ let rec optimise_expr expr = match expr with
         (* Return the literal itself since it has right type *)
         optexpr
       (* if we have a literal and a type that's not the same *)
-      | ELiteral { value=lit; position=p }, t ->
-        (* Actually do cast (never throws since type checking worked )*)
-        ELiteral (with_pos p (type_cast_literal t lit))
+      | ELiteral { value=lit; _ }, t ->
+        (* Actually do cast. If thrown (coudn't do), ignore *)
+        (* worked ; optimize *)
+        begin try ELiteral (unknown_pos (type_cast_literal t lit))
+        (* didn't work ; don't optimize *)
+        with Invalid_argument _ -> expr end
       (* if we don't have a literal, don't optimize *)
       | _ -> expr
     end

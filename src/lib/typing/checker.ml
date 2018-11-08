@@ -139,15 +139,17 @@ let rec get_expr_type env branch = function
     end
 
   (* A cast *)
-  | ETypeCast (totype, expr) ->
+  | ETypeCast (totype, _) ->
     (* Get the target type *)
     let ttarget = value totype in
     (* Compute the type of the expression *)
-    let texpr = get_expr_type env branch (value expr) in
+    (*let texpr = get_expr_type env branch (value expr) in
     (* Check if type cast valid *)
     if not (type_is_valid_cast texpr ttarget)
     then raise (make_located_type_error ReasonInvalidTypeCast totype (given ttarget) (List.map (fun t -> TCValue t) (type_valid_casts_from texpr)));
-    (* Return the cast destination type *)
+    (* Return the cast destination type *)*)
+
+    (* No type checking on cast. *)
     ttarget
 
   (* An operation *)
