@@ -172,18 +172,18 @@ let cpu_step cpu io =
         (* a value ; no wait for event *)
         | Value _ ->
           (* duration *)
-          let duration = float_of_data tok1 in
+          let duration = number_of_data tok1 in
           (* sleep *)
-          Lwt_unix.sleep duration
+          Lwt_unix.sleep (duration /. 1000.)
         (* an identifier ; get the time and wait for it *)
         | Identifier _ ->
           (* get identifier *)
           let _id = extern_id_of_data tok1 in
-          let duration = float_of_data (Stack.pop cpu.stack) in
+          let duration = number_of_data (Stack.pop cpu.stack) in
           (* wait for event *)
           (* TODO *)
           (* sleep *)
-          Lwt_unix.sleep duration
+          Lwt_unix.sleep (duration /. 1000.)
       end
 
     (* A speed instruction *)
@@ -196,7 +196,21 @@ let cpu_step cpu io =
       return ()
 
     (* Invoke a function *)
-    | 0x26 -> return ()
+    | 0x26 ->
+      (* pull the identifier *)
+      let id = extern_id_of_data (Stack.pop cpu.stack) in
+      (* the arglist length *)
+      let length = progbuf_read_int32 progbuf in
+      (* pull the tokens *)
+      let arglist = ref ([]:value list) in
+      (* fill *)
+      for _ = 1 to Int32.to_int length do
+        (* push *)
+        arglist := (value_of_data (Stack.pop cpu.stack)) :: !arglist
+      done;
+      (* call the func *)
+      alu_side_effect id (List.rev !arglist);
+
     (* Send a message to the VM *)
     | 0x27 -> return ()
 
@@ -242,8 +256,8 @@ let cpu_step cpu io =
       (* get a scope *)
       let scope = match scopeid with
         | 0x60 -> Extern
-        | 0x61 -> Global
-        | 0x62 -> Local
+        | 0x61 -> Local
+        | 0x62 -> Global
         | _ -> raise (Vm_error { reason = VmUnrecognizedDeclarator })
       in
       (* push the identifier *)
@@ -396,6 +410,19 @@ let cpu_step cpu io =
       let casted = alu_copy_type dummy value in
       (* repush on stack *)
       Stack.push (Value casted) cpu.stack;
+      (* return *)
+      return ()
+
+    (* Access *)
+    | 0xA4 ->
+      (* pull the identifier *)
+      let property = local_id_of_data (Stack.pop cpu.stack) in
+      (* the value to access *)
+      let constructed = value_of_data (Stack.pop cpu.stack) in
+      (* check *)
+      let accessed = property_of_data constructed property in
+      (* push *)
+      Stack.push (Value accessed) cpu.stack;
       (* return *)
       return ()
 

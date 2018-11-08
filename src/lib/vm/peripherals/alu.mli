@@ -33,3 +33,5 @@ val alu_compute : value -> operation -> value -> value
 val alu_copy_type : value -> value -> value
 (* Apply a function from the VM's library *)
 val alu_call : string -> value list -> value
+(* Invoke a side effecting function *)
+val alu_side_effect : string -> value list -> unit Lwt.t

@@ -167,7 +167,7 @@ and of_instruction = function
     (* all the expressions *)
     ((List.rev_map of_expression (List.map value (value arglist))) @ [
       of_opcode (OpcIdentifier (SExtern, value id));
-      of_opcode OpcInvoke;
+      of_opcode (OpcInvoke (Int32.of_int (List.length (value arglist))));
     ])
   (* A speed command *)
   | ISpeed (expr) -> Pcode.concat [

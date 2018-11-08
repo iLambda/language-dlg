@@ -195,7 +195,7 @@ let io_send_message io opts message =
         (* print the first char *)
         LTerm.print (String.sub str 0 1)
         (* Wait *)
-        >>= fun () -> Lwt_unix.sleep (io.basespeed *. io.speed)
+        >>= fun () -> Lwt_unix.sleep (io.basespeed /. io.speed)
         (* Call recursively *)
         >>= fun () -> write opts (String.sub str 1 ((String.length str) - 1))
   in

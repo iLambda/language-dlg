@@ -29,7 +29,7 @@ type opcode =
   | OpcSet | OpcIfnset | OpcInit
   | OpcWait
   | OpcMessage of messageopt list
-  | OpcInvoke
+  | OpcInvoke of int32
   | OpcSpeed
   | OpcSend
   | OpcChoice

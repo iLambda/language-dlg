@@ -41,23 +41,36 @@ let alu_copy_type dummy dest = match dummy, dest with
   (* Other casts don't work *)
   | _ -> raise (make_type_error "" (Value dest))
 
+(* helper to ensure type *)
+let rec ensure_type_args model args = match model, args with
+  (* nothing left in the two lists : ok*)
+  | [], [] -> ()
+  (* something is wrong in the nubmer of args *)
+  | [], _
+  | _, []  -> raise (Alu_error { reason = (AluCallInvalidArgNumber ((List.length model),(List.length args)))  })
+  (* two args : check types *)
+  | model_arg::model_tl, arg::tl when same_type model_arg arg -> ensure_type_args model_tl tl
+  | model_arg::model_tl, arg::_ ->
+    (* get id of current arg failure *)
+    let arg_id = (List.length model) - (List.length model_tl) - 1 in
+    (* raise *)
+      raise (Alu_error { reason = (AluCallInvalidArgType (arg_id, model_arg, arg)) })
+
+(* Invoke a side effecting function *)
+let alu_side_effect name args =
+  (* match over name of function *)
+  match name with
+    (* A console beep *)
+    | "Console.Beep" ->
+        (* ensure there are the right number of args *)
+        ensure_type_args [] args;
+        (* write a beep in stdin *)
+        LTerm.print "\007"
+    (* no such function.*)
+    | _ -> raise (Alu_error { reason = (AluCallNoSuchFunction name) })
+
 (* Apply a function from the VM's library *)
 let alu_call name args =
-  (* helper to ensure type *)
-  let rec ensure_type_args model args = match model, args with
-    (* nothing left in the two lists : ok*)
-    | [], [] -> ()
-    (* something is wrong in the nubmer of args *)
-    | [], _
-    | _, []  -> raise (Alu_error { reason = (AluCallInvalidArgNumber ((List.length model),(List.length args)))  })
-    (* two args : check types *)
-    | model_arg::model_tl, arg::tl when same_type model_arg arg -> ensure_type_args model_tl tl
-    | model_arg::model_tl, arg::_ ->
-      (* get id of current arg failure *)
-      let arg_id = (List.length model) - (List.length model_tl) - 1 in
-      (* raise *)
-      raise (Alu_error { reason = (AluCallInvalidArgType (arg_id, model_arg, arg)) })
-  in
   (* match over name of function *)
   match name with
     (* random function *)

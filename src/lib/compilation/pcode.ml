@@ -31,7 +31,7 @@ type opcode =
   | OpcSet | OpcIfnset | OpcInit
   | OpcWait
   | OpcMessage of messageopt list
-  | OpcInvoke
+  | OpcInvoke of int32
   | OpcSpeed
   | OpcSend
   | OpcChoice
@@ -109,7 +109,11 @@ let rec byte_sequence_of_opcode = function
     Buf.byte_from_list [0x23; flag]
   | OpcWait -> Buf.byte_from_list [ 0x24 ]
   | OpcSpeed -> Buf.byte_from_list [ 0x25 ]
-  | OpcInvoke -> Buf.byte_from_list [ 0x26 ]
+  | OpcInvoke arglen ->
+    (* convert int to buffer *)
+    let buffer = Utils.Buf.int32_to_buf arglen in
+    (* return *)
+    Bytes.cat (Buf.byte_from_list [ 0x26 ]) (Buffer.to_bytes buffer)
   | OpcSend -> Buf.byte_from_list [ 0x27 ]
   | OpcChoice -> Buf.byte_from_list [ 0x28 ]
   | OpcGotoId _ -> byte_sequence_of_opcode (OpcGoto (-1l))
@@ -205,7 +209,7 @@ let rec byte_sequence_of_opcode = function
     (* convert int to buffer *)
     let buffer = Utils.Buf.int32_to_buf arglen in
     (* return *)
-    Bytes.cat (Buf.byte_from_list [ 0xA2 ]) (Buffer.to_bytes buffer)   
+    Bytes.cat (Buf.byte_from_list [ 0xA2 ]) (Buffer.to_bytes buffer)
   | OpcCast t -> Buf.byte_from_list (0xA3::begin match t with
       | TInt -> [ 0x90 ]
       | TFloat -> [ 0x91 ]

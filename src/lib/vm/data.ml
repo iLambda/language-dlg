@@ -77,6 +77,7 @@ let string_of_value = function (VString x) -> x | d -> raise (make_type_error "s
 let vec2_of_value = function (VVec2 (x, y)) -> (x, y) | d -> raise (make_type_error "vec2" (Value d))
 let vec3_of_value = function (VVec3 (x, y, z)) -> (x, y, z) | d -> raise (make_type_error "vec3" (Value d))
 
+let local_id_of_data = function Identifier (Local, s) -> s | d -> raise (make_type_error "local id" d)
 let extern_id_of_data = function Identifier (Extern, s) -> s | d -> raise (make_type_error "extern id" d)
 let id_of_data = function Identifier id -> id | d -> raise (make_type_error "int" d)
 let number_of_data = function
@@ -91,6 +92,28 @@ let data_of_string s = Value (VString s)
 let data_of_vec2 x y = Value (VVec2 (x, y))
 let data_of_vec3 x y z = Value (VVec3 (x, y, z))
 let data_of_value v = Value v
+
+(* Access *)
+let property_of_data value property = match property with
+  (* access x coordinate *)
+  | "x" -> begin match value with
+    | VVec2 (x, _) -> VFloat x
+    | VVec3 (x, _, _) -> VFloat x
+    | _ -> raise (make_type_error "vector" (Value value))
+  end
+  (* access x coordinate *)
+  | "y" -> begin match value with
+    | VVec2 (_, y) -> VFloat y
+    | VVec3 (_, y, _) -> VFloat y
+    | _ -> raise (make_type_error "vector" (Value value))
+  end
+  (* access x coordinate *)
+  | "z" -> begin match value with
+    | VVec3 (_, _, z) -> VFloat z
+    | _ -> raise (make_type_error "vector 3D" (Value value))
+  end
+  (* error *)
+  | _ -> raise (make_type_error "no type" (Value value))
 
 (* string of value type *)
 let string_of_value_type = function
