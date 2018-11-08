@@ -35,7 +35,17 @@ let env_set_scope_depth env depth =
   env.depth <- depth
 (* Raises the scope *)
 let env_raise_scope env =
-  env.depth <- (Int32.pred env.depth)
+  env.depth <- (Int32.pred env.depth);
+  (* remove dead binding  *)
+  let remove_dead _ (def_value, def_depth) =
+    (* If accessible, keep *)
+    if env.depth >= def_depth then (Some (def_value, def_depth))
+    (* Else, remove *)
+                              else None
+    in
+  (* remove all dead bindings *)
+  Hashtbl.filter_map_inplace remove_dead env.local
+
 (* Deepends the scope *)
 let env_deepen_scope env =
   env.depth <- (Int32.succ env.depth)
