@@ -1,4 +1,5 @@
 open Data
+open Lwt
 
 type alu_error_reason =
   | AluCallInvalidArgType of int * value * value
@@ -66,6 +67,18 @@ let alu_side_effect name args =
         ensure_type_args [] args;
         (* write a beep in stdin *)
         LTerm.print "\007"
+    (* A console sound *)
+    | "Console.Sound" ->
+      (* ensure there are the right number of args *)
+      ensure_type_args [VInt 0l; VInt 0l] args;
+      (* get params *)
+      let freq = int_of_value (List.nth args 0) in
+      let duration = int_of_value (List.nth args 1) in
+      (* call *)
+      Graphics.sound (Int32.to_int freq) (Int32.to_int duration);
+      (* return *)
+      return ()
+
     (* no such function.*)
     | _ -> raise (Alu_error { reason = (AluCallNoSuchFunction name) })
 
