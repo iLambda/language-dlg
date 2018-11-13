@@ -1,4 +1,4 @@
 (include_subdirs unqualified)
 (library
   (name vm)
-  (libraries lwt lambda-term utils))
+  (libraries lwt lambda-term utils graphics))
