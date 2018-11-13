@@ -170,18 +170,14 @@ and token isinline = parse
       (* if we are not inline, open string parser in msg mode*)
       else begin
           string_append OPERATOR_MESSAGE;
-          message ModeMessage lexbuf
+          message isinline ModeMessage lexbuf
         end
     }
   | '\''
     {
-      (* if we are inline, just send symbol*)
-      if isinline then OPERATOR_STRING
-      (* if we are not inline, open string parser in literal mode*)
-      else begin
-          string_append OPERATOR_STRING;
-          message ModeLiteral lexbuf
-        end
+      (* parse a literal ; depends on inlineness *)
+      string_append OPERATOR_STRING;
+      message isinline ModeLiteral lexbuf
     }
   | '_'             { OPERATOR_WILDCARD }
 
@@ -227,7 +223,7 @@ and token isinline = parse
 
 
 (* Rules for parsing strings *)
-and message mode = parse
+and message isinline mode = parse
   (* closing the message *)
   | '"'
     {
@@ -245,31 +241,40 @@ and message mode = parse
           (* a string constant *)
           string_append (STRING_CONST (Lexing.lexeme lexbuf));
           (* keep parsing *)
-          message mode lexbuf
+          message isinline mode lexbuf
           end
     }
   | '\''
     {
       (* check mode *)
       match mode with
-        (* we are parsing a message. this is close*)
+        (* we are parsing a literal. this is close*)
         | ModeLiteral -> begin
-          (* close. *)
-          string_close OPERATOR_STRING;
-          (* we go back to the main rule that'll produce all tokens *)
-          main false lexbuf
+          (* check if inline *)
+            if isinline then
+              (* we return a closing string operator ; we're done *)
+              OPERATOR_STRING
+            else begin
+              (* close. *)
+              string_close OPERATOR_STRING;
+              (* we go back to the main rule that'll produce all tokens *)
+              main false lexbuf
+            end
           end
-        (* we are parsing a message. this is just a char*)
+        (* we are parsing a message. *)
         | ModeMessage -> begin
           (* a string constant *)
           string_append (STRING_CONST (Lexing.lexeme lexbuf));
           (* keep parsing *)
-          message mode lexbuf
+          message isinline mode lexbuf
           end
     }
   (* entering an inline expression *)
   | "$"
     {
+      (* if we are in inline mode (inside a msg inside a literal), throw *)
+      if isinline then error lexbuf "can't have nested inline expressions";
+
       (* append an entering string tag*)
       string_append STRING_INLINE;
       (* declare a token holder *)
@@ -281,7 +286,7 @@ and message mode = parse
       (* append a closing string tag*)
       string_append STRING_INLINE;
       (* keep parsing string *)
-      message mode lexbuf
+      message isinline mode lexbuf
     }
 
   | "\n"" "*
@@ -294,7 +299,7 @@ and message mode = parse
           (* increment the line in the lexer *)
           Lexing.new_line lexbuf;
           (* keep parsing *)
-          message mode lexbuf
+          message isinline mode lexbuf
           end
         | ModeLiteral -> error lexbuf "newline inside string literal"
     }
@@ -310,7 +315,7 @@ and message mode = parse
         | _ -> string_append (STRING_COLOR (Some s))
       in
       (* keep parsing *)
-      message mode lexbuf
+      message isinline mode lexbuf
     }
 
   (* an escape character with a number*)
@@ -319,7 +324,7 @@ and message mode = parse
       (* a string constant *)
       string_append (STRING_CONST (String.make 1 (Char.chr (int_of_string s))));
       (* keep parsing *)
-      message mode lexbuf
+      message isinline mode lexbuf
     }
   (* an escape character *)
   | "\\" (lit_stringescape as s)
@@ -337,7 +342,7 @@ and message mode = parse
       (* a string constant *)
       string_append (STRING_CONST escape);
       (* keep parsing *)
-      message mode lexbuf
+      message isinline mode lexbuf
     }
   (* any other wrong escape character*)
   | ("\\" _) as s
@@ -350,7 +355,7 @@ and message mode = parse
       (* a string constant *)
       string_append (STRING_CONST (String.make 1 s));
       (* keep parsing *)
-      message mode lexbuf
+      message isinline mode lexbuf
     }
   (* a character *)
   | _               { error lexbuf "invalid character in string" }
