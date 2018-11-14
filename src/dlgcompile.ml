@@ -5,10 +5,16 @@ let sourcefilename = ref (None:string option)
 let destfilename = ref (None:string option)
 (* options *)
 let opt_print = ref false
+let opt_use_optimizer = ref true
+let opt_use_typer = ref true
 
 let usage = "usage: " ^ Sys.argv.(0) ^ " input.dlg output.dlp [options]"
 let speclist = [
-    ("--stdout", Arg.Set opt_print, ": print the bytecode to stdout")
+    (* output *)
+    ("--stdout", Arg.Set opt_print, ": print the bytecode to stdout");
+    (* disable stages of compilation *)
+    ("--no-typecheck", Arg.Clear opt_use_typer, ": do not use the static typer");
+    ("--no-optimise", Arg.Clear opt_use_optimizer, ": do not use the optimiser");
   ]
 let filenames x =
   if !sourcefilename = None then sourcefilename := Some x
@@ -20,6 +26,8 @@ let () =
     speclist
     filenames
     usage;
+  (* Disable optimizer if typecheck off *)
+  if not !opt_use_typer then opt_use_optimizer := false;
   (* Try get the source filename *)
   match !sourcefilename with
     (* None, error *)
@@ -38,15 +46,24 @@ let () =
                 in
       if not !opt_print then print_string "Parsing OK\n";
       (* Check typing *)
-      let () = try Typing.Checker.check_program_type ast
-                   with
-                    | Typing.Error.Type_error e -> Typing.Error.print_type_error_at e (Some c);
-                                                   exit 1
-                   in
-       if not !opt_print then print_string "Typing OK\n";
+      if !opt_use_typer then
+        begin
+          let () = try Typing.Checker.check_program_type ast
+                       with
+                        | Typing.Error.Type_error e -> Typing.Error.print_type_error_at e (Some c);
+                                                       exit 1
+                       in
+           if not !opt_print then print_string "Typing OK\n";
+        end
+      else if not !opt_print then print_string "No typing.\n";
       (* Optimize ast *)
-      let optiast = Optimiser.optimise_program ast in
-      if not !opt_print then print_string "Optimisation OK\n";
+      let optiast = if !opt_use_optimizer then Optimiser.optimise_program ast else ast in
+      if not !opt_print then
+        begin
+          if !opt_use_optimizer
+          then print_string "Optimisation OK\n"
+          else print_string "No optimisation.\n"
+        end;
       (* Create the p-code *)
       let pcode = Compilation.Compiler.compile optiast in
       if not !opt_print then print_string "Compilation OK\n";

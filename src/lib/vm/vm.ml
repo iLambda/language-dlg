@@ -1,14 +1,12 @@
-open Error
 open Progbuf
 open Cpu
 open Io
 open Lwt
-(* open LTerm_widget *)
-(* open LTerm_event *)
-(* open CamomileLibrary *)
+open Error
 
-(* Error raised when the vm tries to do something not ok *)
-exception Vm_error of vm_error
+(* Export modules *)
+module Error = Error
+module Progbuf = Progbuf
 
 (* the virtual machine *)
 type vm = {
@@ -49,15 +47,14 @@ let run vm progbuf =
                       (function
                         (* An IO Break *)
                         | Io_break -> return ()
+                        (* A wrong data/variable type is carried toa vm error *)
+                        | Data.Wrong_data_type { expected; token } ->
+                          raise (Vm_error { reason= (VmWrongDataType (expected, token)) })
+                        | Data.Wrong_variable_type { expected; token } ->
+                          raise (Vm_error { reason= (VmWrongVariableType (expected, token)) })
                         (* Raise any other exn *)
                         | exn -> raise exn)))
           (* at end, disable *)
           (fun () -> io_disable vm.io mode)
   (* run *)
   in Lwt_main.run (main ())
-
-(* create progbuf from file *)
-let progbuf_from_file file = Progbuf.progbuf_from_file file
-
-(* To string *)
-let string_of_error error = Error.string_of_vm_error error

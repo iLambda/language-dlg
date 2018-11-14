@@ -1,3 +1,5 @@
+open Data
+
 (* The reason for a vm error *)
 type vm_error_reason =
   | VmUnboundVariable
@@ -8,6 +10,8 @@ type vm_error_reason =
   | VmMemEmpty
   | VmUnrecognizedOperation
   | VmAlreadyBoundVariable
+  | VmWrongDataType of string * data
+  | VmWrongVariableType of value * value
 
 (* The payload of a vm error *)
 type vm_error = {
@@ -29,6 +33,8 @@ let string_of_vm_error error =
     | VmMemEmpty -> "Memory was empty"
     | VmUnrecognizedOperation -> "Operation not recognized"
     | VmAlreadyBoundVariable -> "Variable was already bound"
+    | VmWrongDataType (_expected, _given) -> "Data type mismatch : expected ?, given ?"
+    | VmWrongVariableType (_expected, _given) -> "Variable type mismatch : expected ?, given ?"
   in
   (* the message *)
   "Program error : " ^ reason ^ "\n"
