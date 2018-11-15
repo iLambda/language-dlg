@@ -33,8 +33,8 @@ let string_of_vm_error error =
     | VmMemEmpty -> "Memory was empty"
     | VmUnrecognizedOperation -> "Operation not recognized"
     | VmAlreadyBoundVariable -> "Variable was already bound"
-    | VmWrongDataType (_expected, _given) -> "Data type mismatch : expected ?, given ?"
-    | VmWrongVariableType (_expected, _given) -> "Variable type mismatch : expected ?, given ?"
+    | VmWrongDataType (expected, given) -> Printf.sprintf "Data type mismatch : expected '%s', given '%s'" expected (string_of_data_type given)
+    | VmWrongVariableType (expected, given) -> Printf.sprintf "Variable type mismatch : expected '%s', given '%s'" (string_of_value_type expected) (string_of_value_type given)
   in
   (* the message *)
   "Program error : " ^ reason ^ "\n"

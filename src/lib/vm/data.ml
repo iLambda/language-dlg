@@ -124,6 +124,14 @@ let string_of_value_type = function
   | VVec2 _ -> "vec2"
   | VVec3 _ -> "vec3"
 
+let string_of_data_type = function
+  | Value v -> string_of_value_type v
+  | Identifier (s, _) -> begin match s with
+      | Local -> "local"
+      | Global -> "global"
+      | Extern -> "extern"
+    end ^ " id"
+
 (* inline a value *)
 let inline_string_of_data = function
   | Value v -> inline_string_of_value v
