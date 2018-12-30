@@ -27,6 +27,11 @@ type operation =
   | OpLess
   | OpMore
 
+type unary_operation =
+  | OpUnaryNot
+
+(* Compute an unary operation *)
+val alu_unary_compute : unary_operation -> value -> value
 (* Compute an operation *)
 val alu_compute : value -> operation -> value -> value
 (* Cast a value *)

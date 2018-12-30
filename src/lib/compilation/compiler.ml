@@ -433,6 +433,11 @@ and of_expression expr = match expr with
       of_expression (value lhs);
       of_opcode (OpcOperation (value op));
     ]
+  (* An unary operation *)
+  | EUnaryOperation (op, v) -> Pcode.concat [
+      of_expression (value v);
+      of_opcode (OpcUnaryOperation (value op));
+    ]
   (* A condition *)
   | ECondition (cond, thendo, elsedo) -> Pcode.concat [
       of_expression (value elsedo);

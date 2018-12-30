@@ -426,6 +426,20 @@ let cpu_step cpu io =
       (* return *)
       return ()
 
+    (* Unary operator *)
+    | 0xA5 ->
+      (* pop two toks *)
+      let v = value_of_data (Stack.pop cpu.stack) in
+      (* Get operation *)
+      let op = match int_of_char (progbuf.next ()) with
+        | 0x00 -> OpUnaryNot
+        | _ -> raise (Vm_error { reason = VmUnrecognizedOperation })
+      in
+      (* Compute *)
+      let result = alu_unary_compute op v in
+      (* Push onto stack *)
+      Stack.push (data_of_value result) cpu.stack; return ()
+
     (* Unrecognized *)
     | _ -> raise (Vm_error { reason = VmUnrecognizedDeclarator })
   end

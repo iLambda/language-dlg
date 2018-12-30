@@ -137,10 +137,36 @@ let rec optimise_expr expr = match expr with
       | Some r -> ELiteral (unknown_pos r)
     end
 
+  (* Optimize an unary operation *)
+  | EUnaryOperation (op, v) ->
+    (* Optimize value *)
+    let optval = optimise_expr (value v) in
+    (* Try to optimize the operation by computing *)
+    let result = try Some (optimise_unary (value op) optval)
+                 with Optimisation_failure -> None in
+    (* Check if computation worked *)
+    begin match result with
+      (* Can't optimize more *)
+      | None -> EUnaryOperation(op, unknown_pos optval)
+      (* Return the computation *)
+      | Some r -> ELiteral (unknown_pos r)
+    end
+
+
 
   (* Ignore ; can't optimize *)
   | _ -> expr
 
+
+(* Optimizes a computation between literals, but the evaluation of the lhs and lhs as literals can be carried after *)
+and optimise_unary op v = match op with
+  (* not operator *)
+  | OpUnaryNot -> begin match v with
+    (* Could optimize *)
+    | ELiteral { value=LBool b; _ } -> LBool (not b)
+    (* Couldn't optimize *)
+    | _ -> raise Optimisation_failure
+    end
 
 (* Optimizes a computation between literals, but the evaluation of the lhs and lhs as literals can be carried after *)
 and optimise_operation_lazy lhs op rhs = match op with

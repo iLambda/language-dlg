@@ -69,6 +69,7 @@
 %token <Ast.operation> OPERATION_GEQ
 %token <Ast.operation> OPERATION_LESS
 %token <Ast.operation> OPERATION_MORE
+%token <Ast.unary_operation> OPERATION_NOT
 
 (* Message *)
 %token STRING_INLINE
@@ -99,6 +100,7 @@
 %nonassoc OPERATION_ISEQ, OPERATION_ISNEQ, OPERATION_LEQ, OPERATION_GEQ, OPERATION_LESS, OPERATION_MORE
 %left OPERATION_PLUS, OPERATION_MINUS
 %left OPERATION_DIVIDE OPERATION_STAR
+%nonassoc OPERATION_NOT
 %right PREC_EXPR_TYPECAST
 %nonassoc PUNCTUATION_DOT
 
@@ -219,6 +221,10 @@ expr:
   | t = delimited(PUNCTUATION_LPAREN, located(type_const), PUNCTUATION_RPAREN) e=located(expr) %prec PREC_EXPR_TYPECAST
     { ETypeCast (t, e) }
   (* infix operators *)
+  | operator = located(OPERATION_NOT) lhs = located(expr)
+    {
+      EUnaryOperation(operator, lhs)
+    }
   | lhs = located(expr) operator = located(OPERATION_PLUS) rhs = located(expr)
   | lhs = located(expr) operator = located(OPERATION_MINUS) rhs = located(expr)
   | lhs = located(expr) operator = located(OPERATION_STAR) rhs = located(expr)

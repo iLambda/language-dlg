@@ -199,6 +199,8 @@ and token isinline = parse
   | ">="                 { OPERATION_GEQ    OpGeq }
   | "<"                  { OPERATION_LESS   OpLess }
   | ">"                  { OPERATION_MORE   OpMore }
+  
+  | "!"                  { OPERATION_NOT    OpUnaryNot }
 
   (* Punctuation *)
   | '%'             { PUNCTUATION_PERCENT }

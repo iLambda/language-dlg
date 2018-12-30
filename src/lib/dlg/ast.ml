@@ -59,6 +59,8 @@ and expression =
   | EVar of scoped_identifier located
   (* An operation *)
   | EOperation of operation located * expression located * expression located
+  (* An unary operation *)
+  | EUnaryOperation of unary_operation located * expression located
   (* A ternary *)
   | ECondition of expression located * expression located * expression located
   (* A function call *)
@@ -122,5 +124,8 @@ and operation =
   | OpGeq
   | OpLess
   | OpMore
+
+and unary_operation =
+  | OpUnaryNot
 
 and t = program

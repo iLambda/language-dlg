@@ -85,6 +85,48 @@ let type_is_valid_cast fromtype totype =
   (* Checs if dest type is in the list *)
   List.mem totype valid_casts
 
+(* Returns the signatures allowed for an unary operator *)
+let type_unary_signature = function
+  (* the not operator *)
+  | OpUnaryNot -> [ type_of_function TBool [TBool] ]
+
+(* Check if an unary op*)
+let type_is_valid_unary_op op value =
+  (* Get the list of signatures for current operator *)
+  let signatures = type_unary_signature op in
+  (* The predicate function used *)
+  let predicate = (function signature ->
+    (* decnstruct the signature *)
+    match signature with
+      (* if the list of args has two arguments, test *)
+      | _, [v] -> (type_is_same value v)
+      (* error *)
+      | _ -> false
+  ) in
+  (* Checks if there is a function that takes [value] as input *)
+  List.exists predicate signatures
+
+(* Return the type of the unary operation *)
+let type_return_unary_op op value =
+  (* Get the list of signatures for current operator *)
+  let signatures = type_unary_signature op in
+  (* The predicate function used *)
+  let predicate = (function signature ->
+    (* decnstruct the signature *)
+    match signature with
+      (* if the list of args has two arguments, test *)
+      | _, [v] -> (type_is_same value v)
+      (* error *)
+      | _ -> false
+  ) in
+  (* Checks if there is a function that takes [rhs; lhs] as an argument *)
+  match List.find_opt predicate signatures with
+    (* no signature found ; invalid value *)
+    | None -> raise (Invalid_argument "Type is not compatible with unary operator")
+    (* a signature was found ; return the return type *)
+    | Some (ret, _) -> ret
+
+
 (* Returns the signatures allowed for an operator *)
 let type_op_signature = function
   (* the + operator *)
@@ -146,7 +188,7 @@ let type_op_signature = function
       type_of_function TVec3 [TVec3; TInt];
       type_of_function TVec3 [TVec3; TFloat];
     ]
-  (* the and, or operators *)
+  (* the and, or & not operators *)
   | OpAnd | OpOr -> [ type_of_function TBool [TBool; TBool] ]
   (* the = and != operators *)
   | OpEqual | OpNotEqual -> [ type_of_function TBool [TUnknown; TUnknown] ]

@@ -39,6 +39,7 @@ type opcode =
   (* Expressions *)
   | OpcVariable
   | OpcOperation of operation
+  | OpcUnaryOperation of unary_operation
   | OpcTernary
   | OpcFunctionCall of int32
   | OpcCast of type_const

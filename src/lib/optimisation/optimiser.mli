@@ -20,3 +20,5 @@ val optimise_fstring : fstring -> fstring
 val optimise_operation : literal -> operation -> literal -> literal
 (* Optimizes a computation between literals, but the evaluation of the lhs and lhs as literals can be carried after *)
 val optimise_operation_lazy : expression -> operation -> expression -> literal
+(* Optimizes a unary computation of a literal *)
+val optimise_unary : unary_operation -> expression -> literal

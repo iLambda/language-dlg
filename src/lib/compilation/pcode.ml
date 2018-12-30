@@ -41,6 +41,7 @@ type opcode =
   (* Expressions *)
   | OpcVariable
   | OpcOperation of operation
+  | OpcUnaryOperation of unary_operation
   | OpcTernary
   | OpcFunctionCall of int32
   | OpcCast of type_const
@@ -221,6 +222,12 @@ let rec byte_sequence_of_opcode = function
       | _ -> raise (Pcode_error { reason=PcodeErrorSpecialTypeLiteralFound })
     end)
   | OpcAccess -> Buf.byte_from_list [ 0xA4 ]
+  | OpcUnaryOperation o ->
+    (* compute operation code *)
+    let operationcode = match o with
+      | OpUnaryNot -> 0x00
+    (* return bytes *)
+    in Buf.byte_from_list [0xA5; operationcode]
   (*
    *  JUMP TABLES
    *)

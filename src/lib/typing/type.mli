@@ -24,6 +24,14 @@ val type_return_op : type_const -> operation -> type_const -> type_const
 (* Returns the signatures allowed for an operator *)
 val type_op_signature : operation -> type_func list
 
+(* Check if an unary operation is valid*)
+val type_is_valid_unary_op : unary_operation -> type_const -> bool
+(* Returns the return type of an operation given two valid lhs and rhs types *)
+val type_return_unary_op : unary_operation -> type_const -> type_const
+(* Returns the signatures allowed for an operator *)
+val type_unary_signature : unary_operation -> type_func list
+
+
 (* Returns a function signature type *)
 val type_of_function : type_const -> type_const list -> type_func
 (* Returns the type of a literal *)

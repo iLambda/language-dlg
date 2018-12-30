@@ -27,6 +27,20 @@ type operation =
   | OpLess
   | OpMore
 
+type unary_operation =
+  | OpUnaryNot
+
+
+(* Compute an unary operation *)
+let alu_unary_compute op v = match op with
+  (* not operator *)
+  | OpUnaryNot -> begin match v with
+    (* A boolean *)
+    | VBool b -> VBool (not b)
+    (* Error *)
+    | _ -> raise (make_type_error "" (Value v))
+  end
+
 (* Copy type *)
 let alu_copy_type dummy dest = match dummy, dest with
   (* Identity cast *)

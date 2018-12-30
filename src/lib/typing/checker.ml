@@ -152,6 +152,22 @@ let rec get_expr_type env branch = function
     (* No type checking on cast. *)
     ttarget
 
+  (* An unary operation *)
+  | EUnaryOperation (op, v) ->
+    (* Compute the type of the rhs and get the operator *)
+    let tvalue = get_expr_type env branch (value v) in
+    let top = value op in
+    (* Join the located tokens for error reporting *)
+    let tok = join_located v op (fun x y -> x,y) in
+    (* Check if the operation is valid *)
+    if not (type_is_valid_unary_op top tvalue)
+    then raise (make_located_type_error ReasonInvalidTypeOp tok (given tvalue) []);
+    (* If any of them is unknown, return unknown*)
+    if tvalue = TUnknown then TUnknown
+    else
+      (* Get the return type *)
+      type_return_unary_op top tvalue
+
   (* An operation *)
   | EOperation (op, lhs, rhs) ->
     (* Compute the type of the rhs and get the operator *)
